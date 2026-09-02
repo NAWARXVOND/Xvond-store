@@ -34,9 +34,7 @@ def tap_webhook_hash(payload: dict, secret_key: str) -> str:
 
 
 def normalize_oman_phone(phone: str) -> dict[str, str]:
-    digits = re.sub(r"\D", "", phone)
-    if digits.startswith("968"):
-        digits = digits[3:]
+    digits = re.sub(r"\D", "", phone).removeprefix("968")
     return {"country_code": "968", "number": digits[-8:]}
 
 
