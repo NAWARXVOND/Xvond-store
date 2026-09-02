@@ -4,11 +4,13 @@ from app.models.commerce import (
     Category,
     Coupon,
     Customer,
+    Discount,
     Order,
     OrderItem,
     Product,
     ProductVariant,
     ReturnRequest,
+    StoreSetting,
 )
 
 __all__ = [
@@ -17,9 +19,11 @@ __all__ = [
     "Category",
     "Coupon",
     "Customer",
+    "Discount",
     "Order",
     "OrderItem",
     "Product",
     "ProductVariant",
     "ReturnRequest",
+    "StoreSetting",
 ]

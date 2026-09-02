@@ -18,6 +18,14 @@ Premium bilingual commerce foundation for **Xvond Store**. The repository is int
 Frontend: `http://localhost:3000/ar`  
 API docs: `http://localhost:8000/docs`
 
+## Admin control center
+
+Open `/ar/admin` or `/en/admin` and sign in with the value configured as
+`ADMIN_API_TOKEN` in the backend environment. The token stays in page memory and is
+not persisted in browser storage. The first admin milestone covers products,
+categories, inventory, orders, customers, coupons, discounts, and store settings.
+Product removal is a safe archive operation so historical order data remains intact.
+
 ## Scope
 
 The first foundation includes the premium store home, localized commerce routes, cart/wishlist client state, SEO primitives, catalog models, admin API authentication foundation, provider abstractions for future payments and shipping, tests, and CI. No payment gateway, shipping company, taxes, COD policy, return policy, or supplier decision is encoded yet.
@@ -25,4 +33,3 @@ The first foundation includes the premium store home, localized commerce routes,
 ## Production path
 
 The canonical public URL is `https://xvond.com/store`. Set `NEXT_PUBLIC_BASE_PATH=/store` when deploying under that subpath. Run database migrations and provide production secrets through the deployment environment.
-

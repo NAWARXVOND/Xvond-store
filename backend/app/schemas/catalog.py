@@ -32,6 +32,7 @@ class ProductRead(BaseModel):
     name_en: str
     description_ar: str | None
     description_en: str | None
+    primary_image_url: str | None
     category_id: uuid.UUID
     variants: list[VariantRead]
 
