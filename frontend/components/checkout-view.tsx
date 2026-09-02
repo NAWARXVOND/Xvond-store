@@ -17,7 +17,16 @@ const checkoutSchema = z.object({
   couponCode: z.string().trim().max(60)
 });
 
-type Quote = { subtotal: number; discount_total: number; grand_total: number; promotion_code?: string | null };
+type Quote = {
+  subtotal: number;
+  discount_total: number;
+  shipping_total: number;
+  grand_total: number;
+  promotion_code?: string | null;
+  shipping_available: boolean;
+  estimated_days_min?: number | null;
+  estimated_days_max?: number | null;
+};
 type PendingPayment = { orderNumber: string; email: string };
 
 export function CheckoutView({ locale }: { locale: Locale }) {
@@ -27,6 +36,7 @@ export function CheckoutView({ locale }: { locale: Locale }) {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [coupon, setCoupon] = useState("");
   const [couponMessage, setCouponMessage] = useState("");
+  const [governorate, setGovernorate] = useState("");
   const [tapEnabled, setTapEnabled] = useState(false);
   const [pendingPayment, setPendingPayment] = useState<PendingPayment | null>(null);
   const router = useRouter();
@@ -34,11 +44,15 @@ export function CheckoutView({ locale }: { locale: Locale }) {
   const subtotal = cart.reduce((total, line) => total + line.product.price * line.quantity, 0);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-  async function requestQuote(code = "") {
+  async function requestQuote(code = "", destination = governorate) {
     const response = await fetch(`${apiUrl}/orders/quote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ items: cart.map((line) => ({ product_slug: line.product.slug, quantity: line.quantity })), coupon_code: code || null }),
+      body: JSON.stringify({
+        items: cart.map((line) => ({ product_slug: line.product.slug, quantity: line.quantity })),
+        coupon_code: code || null,
+        governorate: destination.trim() || null
+      }),
     });
     if (!response.ok) throw new Error("quote_failed");
     return await response.json() as Quote;
@@ -55,11 +69,26 @@ export function CheckoutView({ locale }: { locale: Locale }) {
   useEffect(() => {
     if (!cart.length) return;
     let active = true;
-    void requestQuote().then((value) => { if (active) setQuote(value); }).catch(() => undefined);
+    void requestQuote("", "").then((value) => { if (active) setQuote(value); }).catch(() => undefined);
     return () => { active = false; };
   // Cart contents are intentionally the quote dependency.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart]);
+
+  async function refreshShipping(destination: string) {
+    if (destination.trim().length < 2) return;
+    try {
+      const value = await requestQuote(coupon.trim(), destination);
+      setQuote(value);
+      if (!value.shipping_available) {
+        setError(ar ? "التوصيل غير متاح لهذه المحافظة حاليًا." : "Delivery is not available for this governorate yet.");
+      } else {
+        setError("");
+      }
+    } catch {
+      setError(ar ? "تعذر حساب التوصيل الآن." : "Could not calculate delivery right now.");
+    }
+  }
 
   async function applyCoupon() {
     setCouponMessage("");
@@ -114,7 +143,7 @@ export function CheckoutView({ locale }: { locale: Locale }) {
     } catch {
       setError(tapEnabled && pendingPayment
         ? (ar ? "تعذر فتح صفحة الدفع. الطلب محفوظ، اضغط المحاولة مرة أخرى." : "Payment could not be opened. Your order is saved; try again.")
-        : (ar ? "تعذر إكمال الطلب الآن. حاول مرة أخرى." : "We could not complete the order. Please try again."));
+        : (ar ? "تعذر إكمال الطلب. تأكد أن التوصيل متاح لمحافظتك." : "We could not complete the order. Check that delivery is available for your governorate."));
     } finally { setBusy(false); }
   }
 
@@ -124,7 +153,7 @@ export function CheckoutView({ locale }: { locale: Locale }) {
       ? pendingPayment
         ? (ar ? "إعادة محاولة الدفع" : "Retry payment")
         : (ar ? "المتابعة للدفع الآمن" : "Continue to secure payment")
-      : (ar ? "إنشاء طلب مبدئي" : "Create pending order");
+      : (ar ? "إنشاء الطلب" : "Create order");
 
-  return <main className="content-page shell commerce-page"><p className="eyebrow">SECURE CHECKOUT</p><h1>{ar ? "إتمام الطلب" : "Checkout"}</h1><div className="checkout-layout"><form className="checkout-form" action={submit}><h2>{ar ? "بيانات التواصل والتوصيل" : "Contact and delivery"}</h2><div className="form-grid"><label>{ar ? "الاسم الكامل" : "Full name"}<input name="fullName" autoComplete="name" required /></label><label>{ar ? "البريد الإلكتروني" : "Email"}<input name="email" type="email" autoComplete="email" required /></label><label>{ar ? "رقم الهاتف" : "Phone"}<input name="phone" type="tel" autoComplete="tel" required /></label><label>{ar ? "المحافظة" : "Governorate"}<input name="governorate" required /></label><label>{ar ? "المدينة" : "City"}<input name="city" required /></label><label className="full-field">{ar ? "العنوان بالتفصيل" : "Full address"}<textarea name="addressLine" rows={3} required /></label></div><div className="coupon-entry"><label>{ar ? "كود الخصم" : "Coupon code"}<input name="couponCode" value={coupon} onChange={(event) => setCoupon(event.target.value)} maxLength={60} dir="ltr" /></label><button className="secondary-button" type="button" onClick={() => void applyCoupon()} disabled={!coupon.trim()}>{ar ? "تطبيق" : "Apply"}</button></div>{couponMessage && <p className="coupon-message">{couponMessage}</p>}<div className="pending-choice"><strong>{ar ? "الدفع" : "Payment"}</strong><p>{tapEnabled ? (ar ? "الدفع الإلكتروني الآمن عبر Tap. ستظهر لك وسائل الدفع المفعّلة لحساب المتجر في صفحة Tap." : "Secure online payment through Tap. The payment methods enabled for the store will appear on Tap's hosted page.") : (ar ? "الدفع الإلكتروني غير مفعّل بعد. سيتم إنشاء طلب مبدئي بدون تحصيل مبلغ." : "Online payment is not enabled yet. A pending order will be created without collecting payment.")}</p></div>{error && <p className="form-error" role="alert">{error}</p>}<button className="primary-button" disabled={busy || cart.length === 0}>{buttonText}</button></form><aside className="order-summary"><h2>{ar ? "طلبك" : "Your order"}</h2>{cart.map((line) => <div key={line.product.slug}><span>{line.product.name[locale]} × {line.quantity}</span><strong>{formatPrice(line.product.price * line.quantity, locale)}</strong></div>)}<hr /><div><span>{ar ? "المجموع الفرعي" : "Subtotal"}</span><strong>{formatPrice(quote?.subtotal ?? subtotal, locale)}</strong></div>{quote && quote.discount_total > 0 && <div className="discount-line"><span>{ar ? `الخصم (${quote.promotion_code})` : `Discount (${quote.promotion_code})`}</span><strong>-{formatPrice(quote.discount_total, locale)}</strong></div>}<hr /><div><span>{ar ? "الإجمالي" : "Total"}</span><strong>{formatPrice(quote?.grand_total ?? subtotal, locale)}</strong></div></aside></div></main>;
+  return <main className="content-page shell commerce-page"><p className="eyebrow">SECURE CHECKOUT</p><h1>{ar ? "إتمام الطلب" : "Checkout"}</h1><div className="checkout-layout"><form className="checkout-form" action={submit}><h2>{ar ? "بيانات التواصل والتوصيل" : "Contact and delivery"}</h2><div className="form-grid"><label>{ar ? "الاسم الكامل" : "Full name"}<input name="fullName" autoComplete="name" required /></label><label>{ar ? "البريد الإلكتروني" : "Email"}<input name="email" type="email" autoComplete="email" required /></label><label>{ar ? "رقم الهاتف" : "Phone"}<input name="phone" type="tel" autoComplete="tel" required /></label><label>{ar ? "المحافظة" : "Governorate"}<input name="governorate" value={governorate} onChange={(event) => setGovernorate(event.target.value)} onBlur={(event) => void refreshShipping(event.currentTarget.value)} required /></label><label>{ar ? "المدينة" : "City"}<input name="city" required /></label><label className="full-field">{ar ? "العنوان بالتفصيل" : "Full address"}<textarea name="addressLine" rows={3} required /></label></div><div className="coupon-entry"><label>{ar ? "كود الخصم" : "Coupon code"}<input name="couponCode" value={coupon} onChange={(event) => setCoupon(event.target.value)} maxLength={60} dir="ltr" /></label><button className="secondary-button" type="button" onClick={() => void applyCoupon()} disabled={!coupon.trim()}>{ar ? "تطبيق" : "Apply"}</button></div>{couponMessage && <p className="coupon-message">{couponMessage}</p>}{quote?.shipping_available && <div className="pending-choice"><strong>{ar ? "التوصيل" : "Delivery"}</strong><p>{quote.shipping_total === 0 ? (ar ? "توصيل مجاني" : "Free delivery") : `${formatPrice(quote.shipping_total, locale)} · ${quote.estimated_days_min}-${quote.estimated_days_max} ${ar ? "أيام" : "days"}`}</p></div>}<div className="pending-choice"><strong>{ar ? "الدفع" : "Payment"}</strong><p>{tapEnabled ? (ar ? "الدفع الإلكتروني الآمن عبر Tap. ستظهر لك وسائل الدفع المفعّلة لحساب المتجر في صفحة Tap." : "Secure online payment through Tap. The payment methods enabled for the store will appear on Tap's hosted page.") : (ar ? "الدفع الإلكتروني غير مفعّل بعد. سيتم إنشاء الطلب بدون تحصيل مبلغ." : "Online payment is not enabled yet. The order will be created without collecting payment.")}</p></div>{error && <p className="form-error" role="alert">{error}</p>}<button className="primary-button" disabled={busy || cart.length === 0}>{buttonText}</button></form><aside className="order-summary"><h2>{ar ? "طلبك" : "Your order"}</h2>{cart.map((line) => <div key={line.product.slug}><span>{line.product.name[locale]} × {line.quantity}</span><strong>{formatPrice(line.product.price * line.quantity, locale)}</strong></div>)}<hr /><div><span>{ar ? "المجموع الفرعي" : "Subtotal"}</span><strong>{formatPrice(quote?.subtotal ?? subtotal, locale)}</strong></div>{quote && quote.discount_total > 0 && <div className="discount-line"><span>{ar ? `الخصم (${quote.promotion_code})` : `Discount (${quote.promotion_code})`}</span><strong>-{formatPrice(quote.discount_total, locale)}</strong></div>}{quote?.shipping_available && <div><span>{ar ? "التوصيل" : "Delivery"}</span><strong>{quote.shipping_total === 0 ? (ar ? "مجاني" : "Free") : formatPrice(quote.shipping_total, locale)}</strong></div>}<hr /><div><span>{ar ? "الإجمالي" : "Total"}</span><strong>{formatPrice(quote?.grand_total ?? subtotal, locale)}</strong></div></aside></div></main>;
 }

@@ -28,14 +28,19 @@ class CheckoutCreate(BaseModel):
 class CheckoutQuote(BaseModel):
     items: list[CheckoutItem] = Field(min_length=1, max_length=100)
     coupon_code: str | None = Field(default=None, min_length=2, max_length=60)
+    governorate: str | None = Field(default=None, min_length=2, max_length=120)
 
 
 class QuoteRead(BaseModel):
     currency: str = "OMR"
     subtotal: Decimal
     discount_total: Decimal
+    shipping_total: Decimal
     grand_total: Decimal
     promotion_code: str | None = None
+    shipping_available: bool = False
+    estimated_days_min: int | None = None
+    estimated_days_max: int | None = None
 
 
 class OrderCreated(BaseModel):
@@ -46,6 +51,7 @@ class OrderCreated(BaseModel):
     currency: str
     subtotal: Decimal
     discount_total: Decimal
+    shipping_total: Decimal
     grand_total: Decimal
     promotion_code: str | None
 
