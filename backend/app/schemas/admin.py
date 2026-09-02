@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field, HttpUrl
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, model_validator
 
 from app.models.commerce import OrderStatus, PaymentStatus
 
@@ -66,6 +66,23 @@ class DiscountWrite(BaseModel):
     starts_at: datetime | None = None
     ends_at: datetime | None = None
     is_active: bool = True
+
+
+class ShippingRateWrite(BaseModel):
+    governorate: str = Field(min_length=2, max_length=120)
+    name_ar: str = Field(min_length=2, max_length=160)
+    name_en: str = Field(min_length=2, max_length=160)
+    amount: Decimal = Field(ge=0, decimal_places=3)
+    free_over: Decimal | None = Field(default=None, ge=0, decimal_places=3)
+    estimated_days_min: int = Field(default=1, ge=1, le=30)
+    estimated_days_max: int = Field(default=3, ge=1, le=30)
+    is_active: bool = True
+
+    @model_validator(mode="after")
+    def validate_days(self) -> "ShippingRateWrite":
+        if self.estimated_days_max < self.estimated_days_min:
+            raise ValueError("estimated_days_max must be >= estimated_days_min")
+        return self
 
 
 class OrderAdminRead(BaseModel):
