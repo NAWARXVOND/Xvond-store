@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
+    remotePatterns: [{ protocol: "https", hostname: "**" }],
   },
   async headers() {
     return [
@@ -24,4 +24,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
