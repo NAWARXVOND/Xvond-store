@@ -103,6 +103,24 @@ class Order(UUIDMixin, TimestampMixin, Base):
     shipping_total: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
     tax_total: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
     grand_total: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
+    items: Mapped[list["OrderItem"]] = relationship(
+        back_populates="order", cascade="all, delete-orphan"
+    )
+
+
+class OrderItem(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "order_items"
+    order_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("orders.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("products.id"), index=True)
+    variant_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("product_variants.id"))
+    product_name: Mapped[str] = mapped_column(String(250))
+    sku: Mapped[str] = mapped_column(String(80))
+    unit_price: Mapped[Decimal] = mapped_column(Numeric(12, 3))
+    quantity: Mapped[int] = mapped_column(Integer)
+    line_total: Mapped[Decimal] = mapped_column(Numeric(12, 3))
+    order: Mapped[Order] = relationship(back_populates="items")
 
 
 class Coupon(UUIDMixin, TimestampMixin, Base):
