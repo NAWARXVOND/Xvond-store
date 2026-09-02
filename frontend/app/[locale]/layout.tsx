@@ -4,6 +4,7 @@ import { StoreHeader } from "@/components/store-header";
 import { StoreFooter } from "@/components/store-footer";
 import { absoluteUrl } from "@/lib/urls";
 import { CommerceProvider } from "@/components/commerce-provider";
+import "../legal.css";
 
 export function generateStaticParams() { return locales.map((locale) => ({ locale })); }
 
