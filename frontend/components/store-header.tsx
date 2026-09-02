@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { HeartIcon, MagnifyingGlassIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
+import { HeartIcon, MagnifyingGlassIcon, ShoppingBagIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import type { Locale } from "@/lib/i18n";
 import { copy } from "@/lib/i18n";
 import { useCommerce } from "./commerce-provider";
@@ -35,6 +35,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
             {otherLocale.toUpperCase()}
           </Link>
           <Link href={`/${locale}/wishlist`} aria-label={t.wishlist}><HeartIcon /></Link>
+          <Link href={`/${locale}/account`} aria-label={locale === "ar" ? "حسابي" : "My account"}><UserCircleIcon /></Link>
           <Link href={`/${locale}/cart`} aria-label={t.cart} className="cart-link">
             <ShoppingBagIcon /><span>{cartCount}</span>
           </Link>

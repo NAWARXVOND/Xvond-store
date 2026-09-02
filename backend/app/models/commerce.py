@@ -85,6 +85,7 @@ class Customer(UUIDMixin, TimestampMixin, Base):
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     phone: Mapped[str | None] = mapped_column(String(32), unique=True)
     full_name: Mapped[str] = mapped_column(String(180))
+    password_hash: Mapped[str | None] = mapped_column(String(300))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 

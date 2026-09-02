@@ -36,11 +36,16 @@ API docs: `http://localhost:8000/docs`
 
 ## Admin control center
 
-Open `/ar/admin` or `/en/admin` and sign in with the value configured as
-`ADMIN_API_TOKEN` in the backend environment. The token stays in page memory and is
-not persisted in browser storage. The first admin milestone covers products,
+Open `/ar/admin` or `/en/admin` and sign in with `ADMIN_EMAIL` and
+`ADMIN_PASSWORD` from the backend environment. Authentication uses a signed,
+HttpOnly session cookie. The legacy admin API token remains available only as an
+emergency automation credential. The admin covers products,
 categories, inventory, orders, customers, coupons, discounts, and store settings.
 Product removal is a safe archive operation so historical order data remains intact.
+
+Customers can register or sign in at `/ar/account` or `/en/account`, save and
+remove delivery addresses, and view their order history. Guest orders are linked
+when a customer later claims the same email address.
 
 ## Scope
 
