@@ -1,0 +1,120 @@
+import enum
+import uuid
+from decimal import Decimal
+
+from sqlalchemy import Boolean, Enum, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.models.base import Base, TimestampMixin, UUIDMixin
+
+
+class OrderStatus(str, enum.Enum):
+    pending = "pending"
+    confirmed = "confirmed"
+    processing = "processing"
+    shipped = "shipped"
+    delivered = "delivered"
+    cancelled = "cancelled"
+    returned = "returned"
+
+
+class PaymentStatus(str, enum.Enum):
+    pending = "pending"
+    authorized = "authorized"
+    paid = "paid"
+    failed = "failed"
+    refunded = "refunded"
+
+
+class Category(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "categories"
+    slug: Mapped[str] = mapped_column(String(140), unique=True, index=True)
+    name_ar: Mapped[str] = mapped_column(String(200))
+    name_en: Mapped[str] = mapped_column(String(200))
+    description_ar: Mapped[str | None] = mapped_column(Text)
+    description_en: Mapped[str | None] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    products: Mapped[list["Product"]] = relationship(back_populates="category")
+
+
+class Product(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "products"
+    slug: Mapped[str] = mapped_column(String(180), unique=True, index=True)
+    sku: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    name_ar: Mapped[str] = mapped_column(String(250))
+    name_en: Mapped[str] = mapped_column(String(250))
+    description_ar: Mapped[str | None] = mapped_column(Text)
+    description_en: Mapped[str | None] = mapped_column(Text)
+    category_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("categories.id"), index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    category: Mapped[Category] = relationship(back_populates="products")
+    variants: Mapped[list["ProductVariant"]] = relationship(
+        back_populates="product", cascade="all, delete-orphan"
+    )
+
+
+class ProductVariant(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "product_variants"
+    __table_args__ = (UniqueConstraint("product_id", "sku"),)
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"), index=True
+    )
+    sku: Mapped[str] = mapped_column(String(80), index=True)
+    title_ar: Mapped[str] = mapped_column(String(180))
+    title_en: Mapped[str] = mapped_column(String(180))
+    price: Mapped[Decimal] = mapped_column(Numeric(12, 3))
+    compare_at_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 3))
+    stock_quantity: Mapped[int] = mapped_column(Integer, default=0)
+    product: Mapped[Product] = relationship(back_populates="variants")
+
+
+class Customer(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "customers"
+    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    phone: Mapped[str | None] = mapped_column(String(32), unique=True)
+    full_name: Mapped[str] = mapped_column(String(180))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class Address(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "addresses"
+    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id"), index=True)
+    label: Mapped[str] = mapped_column(String(80), default="home")
+    country_code: Mapped[str] = mapped_column(String(2), default="OM")
+    governorate: Mapped[str] = mapped_column(String(120))
+    city: Mapped[str] = mapped_column(String(120))
+    address_line: Mapped[str] = mapped_column(String(300))
+    postal_code: Mapped[str | None] = mapped_column(String(20))
+
+
+class Order(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "orders"
+    order_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
+    customer_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("customers.id"), index=True)
+    status: Mapped[OrderStatus] = mapped_column(
+        Enum(OrderStatus), default=OrderStatus.pending, index=True
+    )
+    payment_status: Mapped[PaymentStatus] = mapped_column(
+        Enum(PaymentStatus), default=PaymentStatus.pending, index=True
+    )
+    currency: Mapped[str] = mapped_column(String(3), default="OMR")
+    subtotal: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
+    discount_total: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
+    shipping_total: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
+    tax_total: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
+    grand_total: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
+
+
+class Coupon(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "coupons"
+    code: Mapped[str] = mapped_column(String(60), unique=True, index=True)
+    discount_type: Mapped[str] = mapped_column(String(20))
+    value: Mapped[Decimal] = mapped_column(Numeric(12, 3))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class ReturnRequest(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "return_requests"
+    order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id"), index=True)
+    status: Mapped[str] = mapped_column(String(30), default="requested", index=True)
+    reason: Mapped[str] = mapped_column(Text)
