@@ -32,7 +32,7 @@ export function ShippingAdmin({ locale }: { locale: Locale }) {
     if (response.ok) setRates(await response.json() as Rate[]);
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { queueMicrotask(() => void load()); }, [load]);
 
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
