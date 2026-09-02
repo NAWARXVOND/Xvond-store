@@ -39,6 +39,15 @@ services:
         condition: service_healthy
     command: ["python", "scripts/email_worker.py"]
 
+  order-expiry-worker:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env.production
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: ["python", "scripts/order_expiry_worker.py"]
+
   frontend:
     build:
       context: ./frontend
