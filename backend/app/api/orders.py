@@ -235,6 +235,11 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
     if coupon is not None and promotion == coupon.code:
         coupon.usage_count += 1
     settings = get_settings()
+    payment_expires_at = None
+    if settings.tap_enabled:
+        payment_expires_at = datetime.now(UTC) + timedelta(
+            minutes=settings.pending_order_hold_minutes
+        )
     order = Order(
         order_number=new_order_number(),
         customer_id=customer.id,
@@ -243,7 +248,7 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         shipping_total=shipping_total,
         grand_total=subtotal - discount + shipping_total,
         promotion_code=promotion,
-        payment_expires_at=datetime.now(UTC) + timedelta(minutes=settings.pending_order_hold_minutes),
+        payment_expires_at=payment_expires_at,
         items=lines,
     )
     session.add(order)
