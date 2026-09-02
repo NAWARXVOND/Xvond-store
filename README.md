@@ -54,6 +54,19 @@ commerce transaction and delivered by `python scripts/email_worker.py` through r
 SMTP. Production refuses to boot with default secrets, local database credentials,
 non-HTTPS frontend URLs, or missing SMTP credentials.
 
+## Tap Payments
+
+Tap is integrated through its hosted Charge flow and is disabled until real merchant
+credentials are supplied. Set `TAP_ENABLED=true`, `TAP_SECRET_KEY`, `TAP_MERCHANT_ID`,
+`TAP_WEBHOOK_URL`, and optionally `TAP_SOURCE_ID` (`src_all` by default). The secret key
+is server-only. Checkout creates a pending order, then requests a Tap hosted payment
+URL. Payment attempts are persisted and reusable if opening the hosted page fails.
+
+Tap webhooks are authenticated with the documented HMAC-SHA256 `hashstring`. Before
+an order is marked paid, the backend also requires the Tap charge ID, merchant order
+reference, amount, and currency to match the stored payment attempt and order. A
+`CAPTURED` webhook marks the payment paid and moves a pending order to confirmed.
+
 For a production container deployment, copy `.env.production.example` to
 `.env.production`, replace every placeholder, then run
 `docker compose --env-file .env.production -f docker-compose.production.yml up -d --build`.
@@ -62,8 +75,14 @@ the only internet-facing entry point.
 
 ## Scope
 
-The first foundation includes the premium store home, localized commerce routes, cart/wishlist client state, SEO primitives, catalog models, admin API authentication foundation, provider abstractions for future payments and shipping, tests, and CI. No payment gateway, shipping company, taxes, COD policy, return policy, or supplier decision is encoded yet.
+The store includes the premium localized storefront, cart/wishlist, customer accounts,
+SEO, catalog and inventory management, promotions, admin operations, transactional
+email, and Tap hosted-payment integration. Shipping provider, shipping pricing, taxes,
+COD policy, return policy, and suppliers remain business decisions that must not be
+invented in code.
 
 ## Production path
 
-The canonical public URL is `https://xvond.com/store`. Set `NEXT_PUBLIC_BASE_PATH=/store` when deploying under that subpath. Run database migrations and provide production secrets through the deployment environment.
+The canonical public URL is `https://xvond.com/store`. Set `NEXT_PUBLIC_BASE_PATH=/store`
+when deploying under that subpath. Run database migrations and provide production
+secrets through the deployment environment.
