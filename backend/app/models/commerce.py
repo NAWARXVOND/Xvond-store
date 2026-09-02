@@ -1,8 +1,19 @@
 import enum
 import uuid
+from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, Numeric, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, UUIDMixin
@@ -45,6 +56,7 @@ class Product(UUIDMixin, TimestampMixin, Base):
     name_en: Mapped[str] = mapped_column(String(250))
     description_ar: Mapped[str | None] = mapped_column(Text)
     description_en: Mapped[str | None] = mapped_column(Text)
+    primary_image_url: Mapped[str | None] = mapped_column(String(1000))
     category_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("categories.id"), index=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     category: Mapped[Category] = relationship(back_populates="products")
@@ -128,7 +140,30 @@ class Coupon(UUIDMixin, TimestampMixin, Base):
     code: Mapped[str] = mapped_column(String(60), unique=True, index=True)
     discount_type: Mapped[str] = mapped_column(String(20))
     value: Mapped[Decimal] = mapped_column(Numeric(12, 3))
+    minimum_order_amount: Mapped[Decimal | None] = mapped_column(Numeric(12, 3))
+    usage_limit: Mapped[int | None] = mapped_column(Integer)
+    usage_count: Mapped[int] = mapped_column(Integer, default=0)
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class Discount(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "discounts"
+    name: Mapped[str] = mapped_column(String(160))
+    discount_type: Mapped[str] = mapped_column(String(20))
+    value: Mapped[Decimal] = mapped_column(Numeric(12, 3))
+    scope: Mapped[str] = mapped_column(String(20), default="store")
+    scope_reference: Mapped[str | None] = mapped_column(String(180))
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class StoreSetting(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "store_settings"
+    key: Mapped[str] = mapped_column(String(100), unique=True, index=True)
+    value: Mapped[str] = mapped_column(Text)
 
 
 class ReturnRequest(UUIDMixin, TimestampMixin, Base):
