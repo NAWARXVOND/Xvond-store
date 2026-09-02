@@ -10,7 +10,7 @@ from app.services.payments.tap import format_tap_amount, normalize_oman_phone, t
 
 
 def test_omr_uses_three_decimal_places() -> None:
-    assert format_tap_amount(Decimal("3"), "OMR") == "3.000"
+    assert format_tap_amount(Decimal(3), "OMR") == "3.000"
 
 
 def test_oman_phone_is_normalized_for_tap() -> None:
