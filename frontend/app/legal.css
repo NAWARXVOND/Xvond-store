@@ -18,6 +18,8 @@
 .legal-nav strong { margin-bottom: .35rem; font-size: .78rem; color: #eef6ff; }
 .legal-nav a { padding: .65rem .75rem; border-radius: .65rem; color: #aebdd0; font-size: .75rem; transition: .2s ease; }
 .legal-nav a:hover { color: #fff; background: rgba(22,140,255,.1); }
+.checkout-legal { max-width: 650px; margin: 1rem 0 .35rem; color: var(--muted); font-size: .72rem; line-height: 1.9; }
+.checkout-legal a { color: var(--cyan); text-decoration: underline; text-underline-offset: 3px; }
 @media (max-width: 760px) {
   .legal-page { padding-block-start: 2rem; }
   .legal-layout { grid-template-columns: 1fr; }
