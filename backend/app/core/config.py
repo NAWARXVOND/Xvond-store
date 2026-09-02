@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     admin_password: str = Field(default="development-admin-password", min_length=12)
     session_secret: str = Field(default="development-session-secret-change-me", min_length=32)
     session_hours: int = Field(default=12, ge=1, le=168)
+    frontend_url: str = "http://localhost:3000"
+    email_from: str = "Xvond Store <support@xvond.com>"
     cors_origins: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

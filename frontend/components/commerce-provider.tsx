@@ -16,6 +16,7 @@ type CommerceState = {
 };
 
 const STORAGE_KEY = "xvond-store-commerce-v1";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 const CommerceContext = createContext<CommerceState | null>(null);
 
 export function CommerceProvider({ children }: { children: React.ReactNode }) {
@@ -41,6 +42,15 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
       setWishlist(restoredWishlist);
       setHydrated(true);
     });
+    void fetch(`${API_URL}/account/wishlist`, { credentials: "include" }).then(async (response) => {
+      if (!response.ok) return;
+      const remote = await response.json() as string[];
+      const merged = [...new Set([...remote, ...restoredWishlist])];
+      setWishlist(merged);
+      for (const slug of restoredWishlist.filter((item) => !remote.includes(item))) {
+        void fetch(`${API_URL}/account/wishlist`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_slug: slug }) });
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -61,7 +71,16 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
     if (quantity < 1) return removeFromCart(slug);
     setCart((current) => current.map((line) => line.product.slug === slug ? { ...line, quantity: Math.min(quantity, 99) } : line));
   }, [removeFromCart]);
-  const toggleWishlist = useCallback((slug: string) => setWishlist((current) => current.includes(slug) ? current.filter((item) => item !== slug) : [...current, slug]), []);
+  const toggleWishlist = useCallback((slug: string) => {
+    const removing = wishlist.includes(slug);
+    setWishlist((current) => removing ? current.filter((item) => item !== slug) : [...current, slug]);
+    void fetch(`${API_URL}/account/wishlist${removing ? `/${encodeURIComponent(slug)}` : ""}`, {
+      method: removing ? "DELETE" : "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: removing ? undefined : JSON.stringify({ product_slug: slug }),
+    });
+  }, [wishlist]);
   const clearCart = useCallback(() => setCart([]), []);
   const cartCount = cart.reduce((total, line) => total + line.quantity, 0);
   const value = useMemo(() => ({ cart, wishlist, cartCount, addToCart, removeFromCart, updateQuantity, toggleWishlist, clearCart }), [cart, wishlist, cartCount, addToCart, removeFromCart, updateQuantity, toggleWishlist, clearCart]);

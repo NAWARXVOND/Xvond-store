@@ -86,6 +86,7 @@ class Customer(UUIDMixin, TimestampMixin, Base):
     phone: Mapped[str | None] = mapped_column(String(32), unique=True)
     full_name: Mapped[str] = mapped_column(String(180))
     password_hash: Mapped[str | None] = mapped_column(String(300))
+    email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
@@ -174,3 +175,25 @@ class ReturnRequest(UUIDMixin, TimestampMixin, Base):
     order_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("orders.id"), index=True)
     status: Mapped[str] = mapped_column(String(30), default="requested", index=True)
     reason: Mapped[str] = mapped_column(Text)
+
+
+class WishlistItem(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "wishlist_items"
+    __table_args__ = (UniqueConstraint("customer_id", "product_id"),)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("products.id", ondelete="CASCADE"), index=True
+    )
+
+
+class AccountToken(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "account_tokens"
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("customers.id", ondelete="CASCADE"), index=True
+    )
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    purpose: Mapped[str] = mapped_column(String(30), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

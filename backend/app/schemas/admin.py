@@ -87,6 +87,10 @@ class OrderStatusUpdate(BaseModel):
     payment_status: PaymentStatus | None = None
 
 
+class ReturnStatusUpdate(BaseModel):
+    status: str = Field(pattern=r"^(requested|reviewing|approved|rejected|received|refunded)$")
+
+
 class StoreSettingWrite(BaseModel):
     key: str = Field(pattern=r"^[a-z][a-z0-9_]*$", max_length=100)
     value: str = Field(max_length=5000)
