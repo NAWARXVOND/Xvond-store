@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
@@ -54,6 +55,7 @@ class OrderCreated(BaseModel):
     shipping_total: Decimal
     grand_total: Decimal
     promotion_code: str | None
+    payment_expires_at: datetime | None
 
 
 class OrderTracking(BaseModel):
@@ -61,3 +63,4 @@ class OrderTracking(BaseModel):
     order_number: str
     status: OrderStatus
     payment_status: PaymentStatus
+    payment_expires_at: datetime | None

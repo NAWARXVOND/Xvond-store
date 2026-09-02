@@ -119,6 +119,7 @@ class Order(UUIDMixin, TimestampMixin, Base):
     grand_total: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
     promotion_code: Mapped[str | None] = mapped_column(String(60))
     inventory_released: Mapped[bool] = mapped_column(Boolean, default=False)
+    payment_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan"
     )

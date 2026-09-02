@@ -12,6 +12,7 @@ from app.core.database import get_session
 from app.models.commerce import Customer, Order, OrderStatus, PaymentStatus
 from app.models.payment import PaymentAttempt
 from app.services.email import queue_order_event
+from app.services.order_lifecycle import payment_window_open
 from app.services.payments.base import PaymentRequest
 from app.services.payments.tap import TapPaymentProvider
 
@@ -64,6 +65,8 @@ async def create_tap_payment(
         raise HTTPException(status_code=404, detail="Order not found")
     if order.payment_status == PaymentStatus.paid:
         raise HTTPException(status_code=409, detail="Order is already paid")
+    if order.status != OrderStatus.pending or not payment_window_open(order):
+        raise HTTPException(status_code=410, detail="Payment window has expired")
 
     existing = await session.scalar(
         select(PaymentAttempt)
@@ -158,6 +161,8 @@ async def tap_webhook(
     attempt.status = tap_status
     was_paid = order.payment_status == PaymentStatus.paid
     if tap_status == "CAPTURED":
+        if order.inventory_released:
+            raise HTTPException(status_code=409, detail="Order inventory was already released")
         order.payment_status = PaymentStatus.paid
         if order.status == OrderStatus.pending:
             order.status = OrderStatus.confirmed

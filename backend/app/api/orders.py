@@ -1,5 +1,5 @@
 import secrets
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated
 
@@ -8,6 +8,7 @@ from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core.config import get_settings
 from app.core.database import get_session
 from app.models.commerce import Address, Coupon, Customer, Discount, Order, OrderItem, Product
 from app.models.shipping import ShippingRate
@@ -233,6 +234,7 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         )
     if coupon is not None and promotion == coupon.code:
         coupon.usage_count += 1
+    settings = get_settings()
     order = Order(
         order_number=new_order_number(),
         customer_id=customer.id,
@@ -241,6 +243,7 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         shipping_total=shipping_total,
         grand_total=subtotal - discount + shipping_total,
         promotion_code=promotion,
+        payment_expires_at=datetime.now(UTC) + timedelta(minutes=settings.pending_order_hold_minutes),
         items=lines,
     )
     session.add(order)
