@@ -16,6 +16,7 @@ from app.models.commerce import (
     WishlistItem,
 )
 from app.models.payment import PaymentAttempt
+from app.models.shipping import ShippingRate
 
 __all__ = [
     "AccountToken",
@@ -32,6 +33,7 @@ __all__ = [
     "Product",
     "ProductVariant",
     "ReturnRequest",
+    "ShippingRate",
     "StoreSetting",
     "WishlistItem",
 ]
