@@ -155,9 +155,26 @@ async def list_orders(session: Session) -> list[Order]:
 
 @router.patch("/orders/{order_id}", response_model=OrderAdminRead)
 async def update_order(order_id: uuid.UUID, payload: OrderStatusUpdate, session: Session) -> Order:
-    order = await session.get(Order, order_id)
+    order = await session.scalar(
+        select(Order)
+        .options(selectinload(Order.items))
+        .where(Order.id == order_id)
+        .with_for_update()
+    )
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
+    if payload.status == "cancelled" and not order.inventory_released:
+        variant_ids = [item.variant_id for item in order.items if item.variant_id is not None]
+        variants = {
+            variant.id: variant
+            for variant in await session.scalars(
+                select(ProductVariant).where(ProductVariant.id.in_(variant_ids)).with_for_update()
+            )
+        }
+        for item in order.items:
+            if item.variant_id in variants:
+                variants[item.variant_id].stock_quantity += item.quantity
+        order.inventory_released = True
     for key, value in payload.model_dump(exclude_none=True).items():
         setattr(order, key, value)
     await session.commit()

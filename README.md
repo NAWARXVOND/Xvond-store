@@ -26,6 +26,11 @@ The seed command is idempotent and only prepares the five approved store categor
 Products added through admin become visible immediately on home, category, search,
 product, wishlist, and sitemap routes through the catalog API.
 
+Checkout quotes are calculated by the backend from current prices and inventory.
+The highest eligible automatic discount or coupon is applied (promotions do not
+stack), and stock is allocated atomically when a pending order is created. Cancelling
+an order from admin releases its allocated stock once.
+
 Frontend: `http://localhost:3000/ar`  
 API docs: `http://localhost:8000/docs`
 

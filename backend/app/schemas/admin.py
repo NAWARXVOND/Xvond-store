@@ -75,7 +75,10 @@ class OrderAdminRead(BaseModel):
     status: OrderStatus
     payment_status: PaymentStatus
     currency: str
+    subtotal: Decimal
+    discount_total: Decimal
     grand_total: Decimal
+    promotion_code: str | None
     created_at: datetime
 
 
