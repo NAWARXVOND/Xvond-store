@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -16,6 +16,11 @@ class Settings(BaseSettings):
     session_hours: int = Field(default=12, ge=1, le=168)
     frontend_url: str = "http://localhost:3000"
     email_from: str = "Xvond Store <support@xvond.com>"
+    smtp_host: str | None = None
+    smtp_port: int = Field(default=587, ge=1, le=65535)
+    smtp_username: str | None = None
+    smtp_password: str | None = None
+    smtp_starttls: bool = True
     cors_origins: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -27,6 +32,35 @@ class Settings(BaseSettings):
     @property
     def secure_cookies(self) -> bool:
         return self.app_env == "production"
+
+    @model_validator(mode="after")
+    def validate_production(self) -> "Settings":
+        if self.app_env != "production":
+            return self
+
+        def placeholder(value: str) -> bool:
+            lowered = value.lower()
+            return any(word in lowered for word in ("development", "replace", "change-me"))
+
+        insecure = {
+            "ADMIN_API_TOKEN": placeholder(self.admin_api_token),
+            "ADMIN_PASSWORD": placeholder(self.admin_password),
+            "SESSION_SECRET": placeholder(self.session_secret),
+            "DATABASE_URL": (
+                "xvond_store:xvond_store@localhost" in self.database_url
+                or placeholder(self.database_url)
+            ),
+            "SMTP_USERNAME": placeholder(self.smtp_username or ""),
+            "SMTP_PASSWORD": placeholder(self.smtp_password or ""),
+        }
+        invalid = [name for name, failed in insecure.items() if failed]
+        if invalid:
+            raise ValueError(f"Production configuration is unsafe: {', '.join(invalid)}")
+        if not all((self.smtp_host, self.smtp_username, self.smtp_password)):
+            raise ValueError("Production SMTP configuration is required")
+        if not self.frontend_url.startswith("https://"):
+            raise ValueError("Production FRONTEND_URL must use HTTPS")
+        return self
 
 
 @lru_cache

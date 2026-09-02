@@ -1,9 +1,12 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.router import api_router
 from app.core.config import get_settings
+from app.core.database import engine
 
 settings = get_settings()
 app = FastAPI(
@@ -38,6 +41,23 @@ async def security_headers(request: Request, call_next):
 @app.get("/health", tags=["system"])
 async def health() -> dict[str, str]:
     return {"status": "ok", "service": "xvond-store-api"}
+
+
+@app.get("/ready", tags=["system"])
+async def ready() -> dict[str, str]:
+    try:
+        async with engine.connect() as connection:
+            await connection.execute(text("select 1"))
+    except (SQLAlchemyError, OSError):
+        raise HTTPException(status_code=503, detail="Database unavailable") from None
+    email_configured = bool(
+        settings.smtp_host and settings.smtp_username and settings.smtp_password
+    )
+    return {
+        "status": "ready",
+        "database": "connected",
+        "email": "configured" if email_configured else "not-configured",
+    }
 
 
 app.include_router(api_router, prefix=settings.api_prefix)

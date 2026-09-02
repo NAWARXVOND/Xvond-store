@@ -8,6 +8,7 @@ import { ProductCard } from "./product-card";
 export function StoreHome({ locale, categories, products }: { locale: Locale; categories: Category[]; products: Product[] }) {
   const t = copy[locale];
   const Arrow = locale === "ar" ? ArrowLeftIcon : ArrowRightIcon;
+  const assetPath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
   return (
     <main>
@@ -22,7 +23,7 @@ export function StoreHome({ locale, categories, products }: { locale: Locale; ca
         </div>
         <div className="hero-visual">
           <Image
-            src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1400&q=90"
+            src={`${assetPath}/hero-abstract.svg`}
             alt={locale === "ar" ? "تشكيلة هدايا فاخرة من Xvond Store" : "Xvond Store luxury gift selection"}
             fill priority sizes="(max-width: 800px) 100vw, 50vw"
           />
@@ -60,7 +61,7 @@ export function StoreHome({ locale, categories, products }: { locale: Locale; ca
       </section>
 
       <section className="luxury-feature shell">
-        <Image src="https://images.unsplash.com/photo-1602173574767-37ac01994b2a?auto=format&fit=crop&w=1400&q=88" alt={t.luxuryTitle} fill sizes="100vw" />
+        <Image src={`${assetPath}/gift-abstract.svg`} alt={t.luxuryTitle} fill sizes="100vw" />
         <div className="luxury-overlay"><p>XVOND GIFTING</p><h2>{t.luxuryTitle}</h2><span>{t.luxuryBody}</span><Link href={`/${locale}/category/luxury-gifts`}>{t.discover}<Arrow /></Link></div>
       </section>
 

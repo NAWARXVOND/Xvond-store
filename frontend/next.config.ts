@@ -1,13 +1,15 @@
 import type { NextConfig } from "next";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const imageHostname = process.env.NEXT_PUBLIC_IMAGE_HOSTNAME;
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   basePath,
   poweredByHeader: false,
   reactStrictMode: true,
   images: {
-    remotePatterns: [{ protocol: "https", hostname: "**" }],
+    remotePatterns: imageHostname ? [{ protocol: "https", hostname: imageHostname }] : [],
   },
   async headers() {
     return [

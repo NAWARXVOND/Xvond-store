@@ -18,7 +18,7 @@ from app.schemas.orders import (
     OrderTracking,
     QuoteRead,
 )
-from app.services.email import send_order_event
+from app.services.email import queue_order_event
 from app.services.pricing import saving
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -206,9 +206,9 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         items=lines,
     )
     session.add(order)
+    queue_order_event(session, customer.email, order.order_number, "pending")
     await session.commit()
     await session.refresh(order)
-    await send_order_event(customer.email, order.order_number, order.status.value)
     return order
 
 
