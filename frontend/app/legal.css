@@ -1,0 +1,26 @@
+.legal-page { min-height: 70vh; padding-block: clamp(2.5rem, 6vw, 5rem) 6rem; }
+.legal-hero { max-width: 860px; padding-bottom: 2.5rem; border-bottom: 1px solid var(--line); }
+.legal-hero > p:first-child { margin: 0 0 .8rem; color: var(--cyan); font-size: .7rem; font-weight: 800; letter-spacing: .16em; }
+.legal-hero h1 { margin: 0 0 .8rem; font-size: clamp(2.2rem, 5vw, 4.6rem); line-height: 1.2; letter-spacing: -.04em; }
+[dir="rtl"] .legal-hero h1 { line-height: 1.45; letter-spacing: -.02em; }
+.legal-hero > span { color: var(--muted); font-size: .75rem; }
+.legal-intro { max-width: 760px; margin: 1.5rem 0 0; color: #c4d0df; line-height: 2; font-size: .95rem; }
+.legal-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: clamp(2rem, 5vw, 5rem); align-items: start; padding-top: 2.5rem; }
+.legal-document { max-width: 820px; }
+.legal-document section { padding: 0 0 2rem; margin: 0 0 2rem; border-bottom: 1px solid var(--line); }
+.legal-document section:last-child { border-bottom: 0; }
+.legal-document h2 { margin: 0 0 1rem; font-size: 1.12rem; line-height: 1.6; }
+.legal-document p, .legal-document li { color: #aebdd0; font-size: .88rem; line-height: 2; }
+.legal-document p { margin: 0 0 .8rem; }
+.legal-document ul { margin: .5rem 0 0; padding-inline-start: 1.3rem; }
+.legal-document li + li { margin-top: .5rem; }
+.legal-nav { position: sticky; top: 110px; display: flex; flex-direction: column; gap: .65rem; padding: 1.25rem; border: 1px solid var(--line); border-radius: 1rem; background: linear-gradient(145deg, rgba(10,20,38,.9), rgba(4,9,19,.96)); }
+.legal-nav strong { margin-bottom: .35rem; font-size: .78rem; color: #eef6ff; }
+.legal-nav a { padding: .65rem .75rem; border-radius: .65rem; color: #aebdd0; font-size: .75rem; transition: .2s ease; }
+.legal-nav a:hover { color: #fff; background: rgba(22,140,255,.1); }
+@media (max-width: 760px) {
+  .legal-page { padding-block-start: 2rem; }
+  .legal-layout { grid-template-columns: 1fr; }
+  .legal-nav { position: static; order: -1; }
+  .legal-document p, .legal-document li { font-size: .82rem; }
+}
