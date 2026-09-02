@@ -37,7 +37,7 @@ from app.schemas.auth import (
     TokenRequest,
     WishlistWrite,
 )
-from app.services.email import send_account_link
+from app.services.email import queue_account_link
 
 router = APIRouter(tags=["authentication"])
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -95,8 +95,8 @@ async def issue_token(customer: Customer, purpose: str, session: AsyncSession) -
             expires_at=datetime.now(UTC) + timedelta(hours=2),
         )
     )
+    queue_account_link(session, customer.email, purpose, raw)
     await session.commit()
-    await send_account_link(customer.email, purpose, raw)
     return raw
 
 

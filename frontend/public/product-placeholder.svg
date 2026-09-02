@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" role="img" aria-label="Xvond Store product image unavailable">
+  <defs><radialGradient id="g"><stop stop-color="#0b66ff" stop-opacity=".36"/><stop offset="1" stop-color="#030712"/></radialGradient></defs>
+  <rect width="1000" height="1000" fill="url(#g)"/>
+  <path d="M345 380h310l55 330H290l55-330Z" fill="none" stroke="#67e8f9" stroke-width="18"/>
+  <path d="M420 410c0-105 160-105 160 0" fill="none" stroke="#fff" stroke-width="18"/>
+  <text x="500" y="825" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="46" letter-spacing="12">XVOND</text>
+</svg>

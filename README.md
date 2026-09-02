@@ -49,8 +49,16 @@ when a customer later claims the same email address.
 
 Account completion includes single-use expiring email verification and password
 reset tokens, cross-device wishlist sync, customer return requests, and order-event
-notification hooks. Development logs notification links locally; production fails
-closed until an email delivery provider is configured.
+notifications. Messages are committed to a durable database outbox with the related
+commerce transaction and delivered by `python scripts/email_worker.py` through real
+SMTP. Production refuses to boot with default secrets, local database credentials,
+non-HTTPS frontend URLs, or missing SMTP credentials.
+
+For a production container deployment, copy `.env.production.example` to
+`.env.production`, replace every placeholder, then run
+`docker compose --env-file .env.production -f docker-compose.production.yml up -d --build`.
+The backend and frontend bind to localhost so the public HTTPS reverse proxy remains
+the only internet-facing entry point.
 
 ## Scope
 

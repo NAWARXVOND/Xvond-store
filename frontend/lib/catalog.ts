@@ -61,7 +61,7 @@ export type ProductFilters = {
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1000&q=85";
+const FALLBACK_IMAGE = `${process.env.NEXT_PUBLIC_BASE_PATH || ""}/product-placeholder.svg`;
 
 function toCategory(category: ApiCategory): Category {
   return {

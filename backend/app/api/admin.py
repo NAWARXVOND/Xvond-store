@@ -31,7 +31,7 @@ from app.schemas.admin import (
     StoreSettingWrite,
 )
 from app.schemas.catalog import CategoryRead, ProductRead
-from app.services.email import send_order_event
+from app.services.email import queue_order_event
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -188,12 +188,12 @@ async def update_order(order_id: uuid.UUID, payload: OrderStatusUpdate, session:
         order.inventory_released = True
     for key, value in payload.model_dump(exclude_none=True).items():
         setattr(order, key, value)
-    await session.commit()
-    await session.refresh(order)
     if order.customer_id is not None:
         customer = await session.get(Customer, order.customer_id)
         if customer is not None:
-            await send_order_event(customer.email, order.order_number, order.status.value)
+            queue_order_event(session, customer.email, order.order_number, order.status.value)
+    await session.commit()
+    await session.refresh(order)
     return order
 
 
