@@ -32,6 +32,7 @@ from app.schemas.admin import (
 )
 from app.schemas.catalog import CategoryRead, ProductRead
 from app.services.email import queue_order_event
+from app.services.order_lifecycle import release_order_inventory
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -174,18 +175,8 @@ async def update_order(order_id: uuid.UUID, payload: OrderStatusUpdate, session:
     )
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
-    if payload.status == "cancelled" and not order.inventory_released:
-        variant_ids = [item.variant_id for item in order.items if item.variant_id is not None]
-        variants = {
-            variant.id: variant
-            for variant in await session.scalars(
-                select(ProductVariant).where(ProductVariant.id.in_(variant_ids)).with_for_update()
-            )
-        }
-        for item in order.items:
-            if item.variant_id in variants:
-                variants[item.variant_id].stock_quantity += item.quantity
-        order.inventory_released = True
+    if payload.status == "cancelled":
+        await release_order_inventory(session, order)
     for key, value in payload.model_dump(exclude_none=True).items():
         setattr(order, key, value)
     if order.customer_id is not None:
