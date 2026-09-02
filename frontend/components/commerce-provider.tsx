@@ -19,6 +19,14 @@ const STORAGE_KEY = "xvond-store-commerce-v1";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 const CommerceContext = createContext<CommerceState | null>(null);
 
+async function bestEffortFetch(input: RequestInfo | URL, init?: RequestInit) {
+  try {
+    return await fetch(input, init);
+  } catch {
+    return null;
+  }
+}
+
 export function CommerceProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -42,15 +50,24 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
       setWishlist(restoredWishlist);
       setHydrated(true);
     });
-    void fetch(`${API_URL}/account/wishlist`, { credentials: "include" }).then(async (response) => {
-      if (!response.ok) return;
+
+    void (async () => {
+      const response = await bestEffortFetch(`${API_URL}/account/wishlist`, { credentials: "include" });
+      if (!response?.ok) return;
+
       const remote = await response.json() as string[];
       const merged = [...new Set([...remote, ...restoredWishlist])];
       setWishlist(merged);
+
       for (const slug of restoredWishlist.filter((item) => !remote.includes(item))) {
-        void fetch(`${API_URL}/account/wishlist`, { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ product_slug: slug }) });
+        void bestEffortFetch(`${API_URL}/account/wishlist`, {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ product_slug: slug }),
+        });
       }
-    });
+    })();
   }, []);
 
   useEffect(() => {
@@ -74,7 +91,7 @@ export function CommerceProvider({ children }: { children: React.ReactNode }) {
   const toggleWishlist = useCallback((slug: string) => {
     const removing = wishlist.includes(slug);
     setWishlist((current) => removing ? current.filter((item) => item !== slug) : [...current, slug]);
-    void fetch(`${API_URL}/account/wishlist${removing ? `/${encodeURIComponent(slug)}` : ""}`, {
+    void bestEffortFetch(`${API_URL}/account/wishlist${removing ? `/${encodeURIComponent(slug)}` : ""}`, {
       method: removing ? "DELETE" : "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
