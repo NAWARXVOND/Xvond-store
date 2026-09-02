@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 import { HeartIcon, MagnifyingGlassIcon, ShoppingBagIcon } from "@heroicons/react/24/outline";
 import type { Locale } from "@/lib/i18n";
 import { copy } from "@/lib/i18n";
+import { useCommerce } from "./commerce-provider";
 
 export function StoreHeader({ locale }: { locale: Locale }) {
   const t = copy[locale];
   const pathname = usePathname();
+  const { cartCount } = useCommerce();
   const otherLocale = locale === "ar" ? "en" : "ar";
   const languagePath = pathname.replace(`/${locale}`, `/${otherLocale}`);
 
@@ -23,10 +25,10 @@ export function StoreHeader({ locale }: { locale: Locale }) {
           <span><strong>Xvond</strong><small>STORE</small></span>
         </Link>
 
-        <label className="search-box">
+        <form className="search-box" action={`/${locale}/search`}>
           <MagnifyingGlassIcon />
-          <input type="search" placeholder={t.search} aria-label={t.search} />
-        </label>
+          <input name="q" type="search" placeholder={t.search} aria-label={t.search} />
+        </form>
 
         <nav className="header-actions" aria-label={locale === "ar" ? "أدوات المتجر" : "Store tools"}>
           <Link href={languagePath || `/${otherLocale}`} className="language-switch" hrefLang={otherLocale}>
@@ -34,11 +36,10 @@ export function StoreHeader({ locale }: { locale: Locale }) {
           </Link>
           <Link href={`/${locale}/wishlist`} aria-label={t.wishlist}><HeartIcon /></Link>
           <Link href={`/${locale}/cart`} aria-label={t.cart} className="cart-link">
-            <ShoppingBagIcon /><span>0</span>
+            <ShoppingBagIcon /><span>{cartCount}</span>
           </Link>
         </nav>
       </div>
     </header>
   );
 }
-
