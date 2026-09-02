@@ -10,6 +10,8 @@ class CategoryRead(BaseModel):
     slug: str
     name_ar: str
     name_en: str
+    description_ar: str | None
+    description_en: str | None
 
 
 class VariantRead(BaseModel):
@@ -34,6 +36,7 @@ class ProductRead(BaseModel):
     description_en: str | None
     primary_image_url: str | None
     category_id: uuid.UUID
+    category: CategoryRead
     variants: list[VariantRead]
 
 

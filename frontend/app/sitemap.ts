@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
-import { categories, products } from "@/lib/catalog";
+import { getCategories, getProducts } from "@/lib/catalog";
 import { absoluteUrl } from "@/lib/urls";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const [categories, products] = await Promise.all([getCategories(), getProducts({ limit: 100 })]);
   const locales = ["ar", "en"];
   return locales.flatMap((locale) => [
     { url: absoluteUrl(`/${locale}`), changeFrequency: "daily" as const, priority: 1 },
@@ -10,4 +11,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...products.map((product) => ({ url: absoluteUrl(`/${locale}/product/${product.slug}`), changeFrequency: "weekly" as const, priority: .7 }))
   ]);
 }
-

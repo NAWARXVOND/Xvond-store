@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeftIcon, ArrowRightIcon, CheckBadgeIcon, LifebuoyIcon, TruckIcon } from "@heroicons/react/24/outline";
-import { categories, products } from "@/lib/catalog";
+import type { Category, Product } from "@/lib/catalog";
 import { copy, type Locale } from "@/lib/i18n";
 import { ProductCard } from "./product-card";
 
-export function StoreHome({ locale }: { locale: Locale }) {
+export function StoreHome({ locale, categories, products }: { locale: Locale; categories: Category[]; products: Product[] }) {
   const t = copy[locale];
   const Arrow = locale === "ar" ? ArrowLeftIcon : ArrowRightIcon;
 
@@ -33,7 +33,7 @@ export function StoreHome({ locale }: { locale: Locale }) {
       <section className="category-strip shell" aria-label={locale === "ar" ? "أقسام المتجر" : "Store categories"}>
         {categories.map((category) => (
           <Link href={`/${locale}/category/${category.slug}`} key={category.slug} className="category-card">
-            <span>{category.symbol}</span>
+            <span>{category.slug === "xvond-box" ? "X" : category.label.en.charAt(0)}</span>
             <strong>{category.label[locale]}</strong>
           </Link>
         ))}
@@ -41,7 +41,7 @@ export function StoreHome({ locale }: { locale: Locale }) {
 
       <section className="products-section shell">
         <div className="section-heading"><div><p>XVOND EDIT</p><h2>{t.newArrivals}</h2></div><Link href={`/${locale}/category/new-arrivals`}>{t.discover}<Arrow /></Link></div>
-        <div className="product-grid">{products.slice(0, 4).map((product) => <ProductCard key={product.slug} product={product} locale={locale} />)}</div>
+        {products.length ? <div className="product-grid">{products.slice(0, 4).map((product) => <ProductCard key={product.slug} product={product} locale={locale} />)}</div> : <CatalogEmpty locale={locale} />}
       </section>
 
       <section className="box-feature shell">
@@ -56,7 +56,7 @@ export function StoreHome({ locale }: { locale: Locale }) {
 
       <section className="products-section shell">
         <div className="section-heading"><div><p>FAVOURITES</p><h2>{t.bestSellers}</h2></div></div>
-        <div className="product-grid">{products.slice(2, 6).map((product) => <ProductCard key={product.slug} product={product} locale={locale} />)}</div>
+        {products.length ? <div className="product-grid">{products.slice(0, 4).reverse().map((product) => <ProductCard key={product.slug} product={product} locale={locale} />)}</div> : <CatalogEmpty locale={locale} />}
       </section>
 
       <section className="luxury-feature shell">
@@ -73,3 +73,6 @@ export function StoreHome({ locale }: { locale: Locale }) {
   );
 }
 
+function CatalogEmpty({ locale }: { locale: Locale }) {
+  return <div className="empty-card"><p>{locale === "ar" ? "المنتجات قيد التجهيز وستظهر هنا فور إضافتها من لوحة الإدارة." : "Products are being prepared and will appear here as soon as they are added in admin."}</p></div>;
+}

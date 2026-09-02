@@ -9,5 +9,5 @@ export function ProductPurchase({ product, locale }: { product: Product; locale:
   const [added, setAdded] = useState(false);
   const { addToCart } = useCommerce();
   const ar = locale === "ar";
-  return <button className="primary-button" type="button" onClick={() => { addToCart(product); setAdded(true); }}>{added ? (ar ? "تمت الإضافة ✓" : "Added ✓") : (ar ? "أضف إلى السلة" : "Add to cart")}</button>;
+  return <button className="primary-button" type="button" disabled={product.stock < 1} onClick={() => { addToCart(product); setAdded(true); }}>{product.stock < 1 ? (ar ? "غير متوفر" : "Out of stock") : added ? (ar ? "تمت الإضافة ✓" : "Added ✓") : (ar ? "أضف إلى السلة" : "Add to cart")}</button>;
 }

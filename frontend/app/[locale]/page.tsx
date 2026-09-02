@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { StoreHome } from "@/components/store-home";
 import { isLocale } from "@/lib/i18n";
 import { absoluteUrl } from "@/lib/urls";
+import { getCategories, getProducts } from "@/lib/catalog";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -18,6 +19,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <StoreHome locale={locale} />;
+  const [categories, products] = await Promise.all([getCategories(), getProducts({ limit: 8 })]);
+  return <StoreHome locale={locale} categories={categories} products={products} />;
 }
-

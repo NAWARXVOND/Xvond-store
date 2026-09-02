@@ -61,7 +61,9 @@ async def admin_products(
     session: Session,
     q: Annotated[str | None, Query(max_length=120)] = None,
 ) -> list[Product]:
-    statement = select(Product).options(selectinload(Product.variants))
+    statement = select(Product).options(
+        selectinload(Product.variants), selectinload(Product.category)
+    )
     if q:
         statement = statement.where(Product.name_en.ilike(f"%{q.strip()}%"))
     result = await session.scalars(statement.order_by(Product.created_at.desc()))
@@ -77,7 +79,7 @@ async def create_product(payload: AdminProductCreate, session: Session) -> Produ
     product.variants.append(ProductVariant(**payload.variant.model_dump()))
     session.add(product)
     await session.commit()
-    await session.refresh(product, attribute_names=["variants"])
+    await session.refresh(product, attribute_names=["variants", "category"])
     return product
 
 
@@ -86,7 +88,9 @@ async def update_product(
     product_id: uuid.UUID, payload: ProductUpdate, session: Session
 ) -> Product:
     product = await session.scalar(
-        select(Product).options(selectinload(Product.variants)).where(Product.id == product_id)
+        select(Product)
+        .options(selectinload(Product.variants), selectinload(Product.category))
+        .where(Product.id == product_id)
     )
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -96,7 +100,7 @@ async def update_product(
     for key, value in values.items():
         setattr(product, key, value)
     await session.commit()
-    await session.refresh(product)
+    await session.refresh(product, attribute_names=["variants", "category"])
     return product
 
 

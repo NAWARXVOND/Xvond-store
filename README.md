@@ -15,6 +15,17 @@ Premium bilingual commerce foundation for **Xvond Store**. The repository is int
 3. Frontend: `cd frontend && npm install && npm run dev`.
 4. Backend: `cd backend && python -m venv .venv && pip install -e '.[dev]' && uvicorn app.main:app --reload`.
 
+Initialize the database once from `backend/`:
+
+```bash
+alembic upgrade head
+python scripts/seed_catalog.py
+```
+
+The seed command is idempotent and only prepares the five approved store categories.
+Products added through admin become visible immediately on home, category, search,
+product, wishlist, and sitemap routes through the catalog API.
+
 Frontend: `http://localhost:3000/ar`  
 API docs: `http://localhost:8000/docs`
 
