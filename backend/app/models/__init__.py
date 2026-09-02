@@ -15,6 +15,7 @@ from app.models.commerce import (
     StoreSetting,
     WishlistItem,
 )
+from app.models.payment import PaymentAttempt
 
 __all__ = [
     "AccountToken",
@@ -27,6 +28,7 @@ __all__ = [
     "EmailOutbox",
     "Order",
     "OrderItem",
+    "PaymentAttempt",
     "Product",
     "ProductVariant",
     "ReturnRequest",

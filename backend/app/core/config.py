@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     smtp_username: str | None = None
     smtp_password: str | None = None
     smtp_starttls: bool = True
+    tap_enabled: bool = False
+    tap_secret_key: str | None = None
+    tap_merchant_id: str | None = None
+    tap_source_id: str = "src_all"
+    tap_webhook_url: str | None = None
     cors_origins: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -60,6 +65,13 @@ class Settings(BaseSettings):
             raise ValueError("Production SMTP configuration is required")
         if not self.frontend_url.startswith("https://"):
             raise ValueError("Production FRONTEND_URL must use HTTPS")
+        if self.tap_enabled:
+            if not all((self.tap_secret_key, self.tap_merchant_id, self.tap_webhook_url)):
+                raise ValueError("Tap is enabled but TAP_SECRET_KEY, TAP_MERCHANT_ID or TAP_WEBHOOK_URL is missing")
+            if placeholder(self.tap_secret_key or ""):
+                raise ValueError("Production TAP_SECRET_KEY must not be a placeholder")
+            if not (self.tap_webhook_url or "").startswith("https://"):
+                raise ValueError("Production TAP_WEBHOOK_URL must use HTTPS")
         return self
 
 
