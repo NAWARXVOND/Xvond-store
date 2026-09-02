@@ -9,13 +9,23 @@ class PaymentRequest:
     amount: Decimal
     currency: str
     return_url: str
+    webhook_url: str
+    customer_name: str
+    customer_email: str
+    customer_phone: str
+    locale: str = "en"
+
+
+@dataclass(frozen=True)
+class PaymentResult:
+    provider_payment_id: str
+    checkout_url: str
+    status: str
 
 
 class PaymentProvider(ABC):
-    """Contract for a future Oman-compatible payment provider."""
+    @abstractmethod
+    async def create_payment(self, request: PaymentRequest) -> PaymentResult: ...
 
     @abstractmethod
-    async def create_payment(self, request: PaymentRequest) -> str: ...
-
-    @abstractmethod
-    async def verify_webhook(self, payload: bytes, signature: str) -> bool: ...
+    async def verify_webhook(self, payload: dict, signature: str) -> bool: ...
