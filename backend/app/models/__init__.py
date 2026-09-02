@@ -1,5 +1,6 @@
 from app.models.base import Base
 from app.models.commerce import (
+    AccountToken,
     Address,
     Category,
     Coupon,
@@ -11,9 +12,11 @@ from app.models.commerce import (
     ProductVariant,
     ReturnRequest,
     StoreSetting,
+    WishlistItem,
 )
 
 __all__ = [
+    "AccountToken",
     "Address",
     "Base",
     "Category",
@@ -26,4 +29,5 @@ __all__ = [
     "ProductVariant",
     "ReturnRequest",
     "StoreSetting",
+    "WishlistItem",
 ]

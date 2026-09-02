@@ -47,6 +47,11 @@ Customers can register or sign in at `/ar/account` or `/en/account`, save and
 remove delivery addresses, and view their order history. Guest orders are linked
 when a customer later claims the same email address.
 
+Account completion includes single-use expiring email verification and password
+reset tokens, cross-device wishlist sync, customer return requests, and order-event
+notification hooks. Development logs notification links locally; production fails
+closed until an email delivery provider is configured.
+
 ## Scope
 
 The first foundation includes the premium store home, localized commerce routes, cart/wishlist client state, SEO primitives, catalog models, admin API authentication foundation, provider abstractions for future payments and shipping, tests, and CI. No payment gateway, shipping company, taxes, COD policy, return policy, or supplier decision is encoded yet.

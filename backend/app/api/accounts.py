@@ -1,5 +1,7 @@
+import hashlib
 import secrets
 import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
@@ -15,8 +17,27 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.models.commerce import Address, Customer, Order
-from app.schemas.auth import AddressWrite, LoginRequest, ProfileRead, RegisterRequest
+from app.models.commerce import (
+    AccountToken,
+    Address,
+    Customer,
+    Order,
+    Product,
+    ReturnRequest,
+    WishlistItem,
+)
+from app.schemas.auth import (
+    AddressWrite,
+    EmailRequest,
+    LoginRequest,
+    PasswordResetConfirm,
+    ProfileRead,
+    RegisterRequest,
+    ReturnWrite,
+    TokenRequest,
+    WishlistWrite,
+)
+from app.services.email import send_account_link
 
 router = APIRouter(tags=["authentication"])
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -56,7 +77,48 @@ CurrentCustomer = Annotated[Customer, Depends(current_customer)]
 
 
 def profile(customer: Customer) -> ProfileRead:
-    return ProfileRead(id=str(customer.id), full_name=customer.full_name, email=customer.email)
+    return ProfileRead(
+        id=str(customer.id),
+        full_name=customer.full_name,
+        email=customer.email,
+        email_verified=customer.email_verified,
+    )
+
+
+async def issue_token(customer: Customer, purpose: str, session: AsyncSession) -> str:
+    raw = secrets.token_urlsafe(32)
+    session.add(
+        AccountToken(
+            customer_id=customer.id,
+            token_hash=hashlib.sha256(raw.encode()).hexdigest(),
+            purpose=purpose,
+            expires_at=datetime.now(UTC) + timedelta(hours=2),
+        )
+    )
+    await session.commit()
+    await send_account_link(customer.email, purpose, raw)
+    return raw
+
+
+async def consume_token(
+    raw: str, purpose: str, session: AsyncSession
+) -> tuple[AccountToken, Customer]:
+    token = await session.scalar(
+        select(AccountToken)
+        .where(
+            AccountToken.token_hash == hashlib.sha256(raw.encode()).hexdigest(),
+            AccountToken.purpose == purpose,
+        )
+        .with_for_update()
+    )
+    now = datetime.now(UTC)
+    if token is None or token.used_at is not None or token.expires_at < now:
+        raise HTTPException(status_code=422, detail="Token is invalid or expired")
+    customer = await session.get(Customer, token.customer_id)
+    if customer is None:
+        raise HTTPException(status_code=422, detail="Token is invalid")
+    token.used_at = now
+    return token, customer
 
 
 @router.post("/auth/register", response_model=ProfileRead, status_code=status.HTTP_201_CREATED)
@@ -72,6 +134,7 @@ async def register(payload: RegisterRequest, response: Response, session: Sessio
     customer.password_hash = hash_password(payload.password)
     await session.commit()
     await session.refresh(customer)
+    await issue_token(customer, "verify-email", session)
     set_session_cookie(response, create_session(str(customer.id), "customer"))
     return profile(customer)
 
@@ -83,6 +146,37 @@ async def login(payload: LoginRequest, response: Response, session: Session) -> 
         raise HTTPException(status_code=401, detail="Invalid email or password")
     set_session_cookie(response, create_session(str(customer.id), "customer"))
     return profile(customer)
+
+
+@router.post("/auth/password/forgot", status_code=202)
+async def forgot_password(payload: EmailRequest, session: Session) -> dict[str, str]:
+    customer = await session.scalar(select(Customer).where(Customer.email == payload.email.lower()))
+    if customer is not None and customer.password_hash:
+        await issue_token(customer, "reset-password", session)
+    return {"status": "accepted"}
+
+
+@router.post("/auth/password/reset")
+async def reset_password(payload: PasswordResetConfirm, session: Session) -> dict[str, str]:
+    _, customer = await consume_token(payload.token, "reset-password", session)
+    customer.password_hash = hash_password(payload.password)
+    await session.commit()
+    return {"status": "password-updated"}
+
+
+@router.post("/auth/email/verify")
+async def verify_email(payload: TokenRequest, session: Session) -> dict[str, str]:
+    _, customer = await consume_token(payload.token, "verify-email", session)
+    customer.email_verified = True
+    await session.commit()
+    return {"status": "email-verified"}
+
+
+@router.post("/auth/email/resend", status_code=202)
+async def resend_verification(customer: CurrentCustomer, session: Session) -> dict[str, str]:
+    if not customer.email_verified:
+        await issue_token(customer, "verify-email", session)
+    return {"status": "accepted"}
 
 
 @router.post("/auth/admin/login")
@@ -175,3 +269,84 @@ async def customer_orders(customer: CurrentCustomer, session: Session) -> list[d
         }
         for item in result
     ]
+
+
+@router.get("/account/wishlist")
+async def wishlist(customer: CurrentCustomer, session: Session) -> list[str]:
+    result = await session.scalars(
+        select(Product.slug)
+        .join(WishlistItem, WishlistItem.product_id == Product.id)
+        .where(WishlistItem.customer_id == customer.id, Product.is_active.is_(True))
+    )
+    return list(result)
+
+
+@router.post("/account/wishlist", status_code=201)
+async def add_wishlist(
+    payload: WishlistWrite, customer: CurrentCustomer, session: Session
+) -> dict[str, str]:
+    product = await session.scalar(
+        select(Product).where(Product.slug == payload.product_slug, Product.is_active.is_(True))
+    )
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    existing = await session.scalar(
+        select(WishlistItem).where(
+            WishlistItem.customer_id == customer.id,
+            WishlistItem.product_id == product.id,
+        )
+    )
+    if existing is None:
+        session.add(WishlistItem(customer_id=customer.id, product_id=product.id))
+        await session.commit()
+    return {"product_slug": product.slug}
+
+
+@router.delete("/account/wishlist/{product_slug}", status_code=204)
+async def remove_wishlist(product_slug: str, customer: CurrentCustomer, session: Session) -> None:
+    item = await session.scalar(
+        select(WishlistItem)
+        .join(Product, Product.id == WishlistItem.product_id)
+        .where(WishlistItem.customer_id == customer.id, Product.slug == product_slug)
+    )
+    if item is not None:
+        await session.delete(item)
+        await session.commit()
+
+
+@router.get("/account/returns")
+async def returns(customer: CurrentCustomer, session: Session) -> list[dict[str, object]]:
+    result = await session.execute(
+        select(ReturnRequest, Order.order_number)
+        .join(Order, Order.id == ReturnRequest.order_id)
+        .where(Order.customer_id == customer.id)
+        .order_by(ReturnRequest.created_at.desc())
+    )
+    return [
+        {
+            "id": str(item.id),
+            "order_number": order_number,
+            "status": item.status,
+            "reason": item.reason,
+            "created_at": item.created_at,
+        }
+        for item, order_number in result
+    ]
+
+
+@router.post("/account/returns", status_code=201)
+async def request_return(
+    payload: ReturnWrite, customer: CurrentCustomer, session: Session
+) -> dict[str, str]:
+    order = await session.scalar(
+        select(Order).where(
+            Order.order_number == payload.order_number.upper(),
+            Order.customer_id == customer.id,
+        )
+    )
+    if order is None:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return_request = ReturnRequest(order_id=order.id, reason=payload.reason)
+    session.add(return_request)
+    await session.commit()
+    return {"id": str(return_request.id), "status": return_request.status}

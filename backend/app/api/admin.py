@@ -16,6 +16,7 @@ from app.models.commerce import (
     Order,
     Product,
     ProductVariant,
+    ReturnRequest,
     StoreSetting,
 )
 from app.schemas.admin import (
@@ -26,16 +27,18 @@ from app.schemas.admin import (
     OrderAdminRead,
     OrderStatusUpdate,
     ProductUpdate,
+    ReturnStatusUpdate,
     StoreSettingWrite,
 )
 from app.schemas.catalog import CategoryRead, ProductRead
+from app.services.email import send_order_event
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 
 @router.get("/overview")
-async def overview(session: Session) -> dict[str, int | str]:
+async def overview(session: Session) -> dict[str, object]:
     result = await session.execute(
         select(
             select(func.count(Product.id)).scalar_subquery(),
@@ -44,15 +47,23 @@ async def overview(session: Session) -> dict[str, int | str]:
             select(func.count(ProductVariant.id))
             .where(ProductVariant.stock_quantity <= 5)
             .scalar_subquery(),
+            select(func.count(Order.id)).where(Order.status == "pending").scalar_subquery(),
+            select(func.coalesce(func.sum(Order.grand_total), 0))
+            .where(Order.payment_status == "paid")
+            .scalar_subquery(),
+            select(func.count(ReturnRequest.id)).scalar_subquery(),
         )
     )
-    products, orders, customers, low_stock = result.one()
+    products, orders, customers, low_stock, pending_orders, paid_revenue, returns = result.one()
     return {
         "status": "ready",
         "products": products,
         "orders": orders,
         "customers": customers,
         "low_stock": low_stock,
+        "pending_orders": pending_orders,
+        "paid_revenue": str(paid_revenue),
+        "returns": returns,
     }
 
 
@@ -179,6 +190,10 @@ async def update_order(order_id: uuid.UUID, payload: OrderStatusUpdate, session:
         setattr(order, key, value)
     await session.commit()
     await session.refresh(order)
+    if order.customer_id is not None:
+        customer = await session.get(Customer, order.customer_id)
+        if customer is not None:
+            await send_order_event(customer.email, order.order_number, order.status.value)
     return order
 
 
@@ -191,6 +206,37 @@ async def list_customers(session: Session) -> list[dict[str, str]]:
         {"id": str(item.id), "name": item.full_name, "email": item.email, "phone": item.phone or ""}
         for item in customers
     ]
+
+
+@router.get("/returns")
+async def list_returns(session: Session) -> list[dict[str, object]]:
+    result = await session.execute(
+        select(ReturnRequest, Order.order_number)
+        .join(Order, Order.id == ReturnRequest.order_id)
+        .order_by(ReturnRequest.created_at.desc())
+    )
+    return [
+        {
+            "id": str(item.id),
+            "order_number": order_number,
+            "status": item.status,
+            "reason": item.reason,
+            "created_at": item.created_at,
+        }
+        for item, order_number in result
+    ]
+
+
+@router.patch("/returns/{return_id}")
+async def update_return(
+    return_id: uuid.UUID, payload: ReturnStatusUpdate, session: Session
+) -> dict[str, str]:
+    item = await session.get(ReturnRequest, return_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Return request not found")
+    item.status = payload.status
+    await session.commit()
+    return {"id": str(item.id), "status": item.status}
 
 
 @router.get("/coupons")

@@ -16,6 +16,28 @@ class ProfileRead(BaseModel):
     id: str
     full_name: str
     email: str
+    email_verified: bool
+
+
+class EmailRequest(BaseModel):
+    email: EmailStr
+
+
+class TokenRequest(BaseModel):
+    token: str = Field(min_length=32, max_length=200)
+
+
+class PasswordResetConfirm(TokenRequest):
+    password: str = Field(min_length=10, max_length=128)
+
+
+class WishlistWrite(BaseModel):
+    product_slug: str = Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=180)
+
+
+class ReturnWrite(BaseModel):
+    order_number: str = Field(min_length=8, max_length=32)
+    reason: str = Field(min_length=5, max_length=2000)
 
 
 class AddressWrite(BaseModel):
