@@ -10,6 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import get_session
 from app.models.commerce import Address, Coupon, Customer, Discount, Order, OrderItem, Product
+from app.models.shipping import ShippingRate
 from app.schemas.orders import (
     CheckoutCreate,
     CheckoutItem,
@@ -20,6 +21,7 @@ from app.schemas.orders import (
 )
 from app.services.email import queue_order_event
 from app.services.pricing import saving
+from app.services.shipping.local import normalize_governorate, shipping_amount
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -129,34 +131,69 @@ async def calculate_quote(
     coupon_code: str | None,
     session: AsyncSession,
     *,
+    governorate: str | None = None,
     lock: bool = False,
-) -> tuple[dict[str, Product], Decimal, Decimal, str | None, Coupon | None]:
+) -> tuple[
+    dict[str, Product],
+    Decimal,
+    Decimal,
+    str | None,
+    Coupon | None,
+    ShippingRate | None,
+    Decimal,
+]:
     products = await load_products(items, session, lock=lock)
     subtotal, totals = line_totals(items, products)
     discount, promotion, coupon = await best_promotion(
         subtotal, totals, products, coupon_code, session
     )
-    return products, subtotal, discount, promotion, coupon
+    rate: ShippingRate | None = None
+    shipping_total = Decimal("0.000")
+    if governorate:
+        rate = await session.scalar(
+            select(ShippingRate).where(
+                ShippingRate.governorate_key == normalize_governorate(governorate),
+                ShippingRate.is_active.is_(True),
+            )
+        )
+        if rate is not None:
+            shipping_total = shipping_amount(rate, subtotal - discount)
+    return products, subtotal, discount, promotion, coupon, rate, shipping_total
 
 
 @router.post("/quote", response_model=QuoteRead)
 async def quote(payload: CheckoutQuote, session: Session) -> QuoteRead:
-    _, subtotal, discount, promotion, _ = await calculate_quote(
-        payload.items, payload.coupon_code, session
+    _, subtotal, discount, promotion, _, rate, shipping_total = await calculate_quote(
+        payload.items,
+        payload.coupon_code,
+        session,
+        governorate=payload.governorate,
     )
+    merchandise_total = subtotal - discount
     return QuoteRead(
         subtotal=subtotal,
         discount_total=discount,
-        grand_total=subtotal - discount,
+        shipping_total=shipping_total,
+        grand_total=merchandise_total + shipping_total,
         promotion_code=promotion,
+        shipping_available=rate is not None,
+        estimated_days_min=rate.estimated_days_min if rate else None,
+        estimated_days_max=rate.estimated_days_max if rate else None,
     )
 
 
 @router.post("", response_model=OrderCreated, status_code=status.HTTP_201_CREATED)
 async def create_order(payload: CheckoutCreate, session: Session) -> Order:
-    products, subtotal, discount, promotion, coupon = await calculate_quote(
-        payload.items, payload.coupon_code, session, lock=True
+    products, subtotal, discount, promotion, coupon, rate, shipping_total = await calculate_quote(
+        payload.items,
+        payload.coupon_code,
+        session,
+        governorate=payload.customer.governorate,
+        lock=True,
     )
+    if rate is None:
+        raise HTTPException(status_code=422, detail="Delivery is not available for this governorate")
+
     customer = await session.scalar(
         select(Customer).where(Customer.email == payload.customer.email)
     )
@@ -201,7 +238,8 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         customer_id=customer.id,
         subtotal=subtotal,
         discount_total=discount,
-        grand_total=subtotal - discount,
+        shipping_total=shipping_total,
+        grand_total=subtotal - discount + shipping_total,
         promotion_code=promotion,
         items=lines,
     )
