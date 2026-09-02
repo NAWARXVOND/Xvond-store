@@ -233,6 +233,11 @@ button, input { font: inherit; }
 .stock-ready { color: #75e7bd; }
 .stock-empty { color: #ff91a8; }
 .primary-button:disabled, .heart-button:disabled { cursor: not-allowed; opacity: .45; }
+.coupon-entry { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: .65rem; }
+.coupon-entry label { display: grid; gap: .45rem; color: var(--muted); font-size: .75rem; }
+.coupon-entry input { min-height: 44px; padding: .7rem .8rem; color: var(--white); background: rgba(255,255,255,.035); border: 1px solid var(--line); border-radius: .7rem; }
+.coupon-message { color: var(--cyan); font-size: .78rem; }
+.order-summary .discount-line { color: #75e7bd; }
 
 @media (max-width: 900px) {
   :root { --shell: min(100% - 1.25rem, 760px); }
