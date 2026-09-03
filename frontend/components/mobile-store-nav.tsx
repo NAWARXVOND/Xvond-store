@@ -14,7 +14,7 @@ export function MobileStoreNav({ locale }: { locale: Locale }) {
   const ar = locale === "ar";
   const store = storeForPath(pathname, locale, searchParams.get("store"));
 
-  if (pathname === `/${locale}`) return null;
+  if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/admin`)) return null;
 
   const homeHref = store ? `/${locale}/${store}` : `/${locale}`;
   const items = [
