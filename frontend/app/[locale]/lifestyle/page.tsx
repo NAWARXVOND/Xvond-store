@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const ar = locale === "ar";
-  return { title: `Xvond Lifestyle Store | Xvond Store`, description: ar ? "اختيارات Xvond Lifestyle من الأزياء والأطفال والهدايا ومستلزمات السيارة." : "Explore Xvond Lifestyle Store across fashion, kids, gifts and automotive essentials.", alternates: { canonical: absoluteUrl(`/${locale}/lifestyle`) } };
+  return { title: "Xvond Lifestyle Store | Xvond Store", description: ar ? "تسوّق Xvond Lifestyle: نساء، أطفال، هدايا ومستلزمات السيارة." : "Shop Xvond Lifestyle across women, kids, gifts and automotive.", alternates: { canonical: absoluteUrl(`/${locale}/lifestyle`) } };
 }
 
 export default async function LifestylePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -27,21 +27,38 @@ export default async function LifestylePage({ params }: { params: Promise<{ loca
 
   return (
     <main className={styles.page}>
-      <section className={styles.hero}>
-        <div><p className={styles.eyebrow}>XVOND LIFESTYLE STORE</p><h1>{ar ? "منتجات للحياة اليومية، بدون عشوائية المتجر العام." : "Everyday products without the randomness of a general store."}</h1><p>{ar ? "هون منجمع المنتجات التجارية اللي ممكن تتنوع مع الوقت، لكن ضمن ذوق واضح: عملية، مرتبة، قابلة للتسويق، ومناسبة لهوية Xvond." : "This is where commercial variety can grow, but within a clear standard: useful, well-presented, marketable and aligned with Xvond."}</p></div>
-        <Link href={`/${locale}/smart`} className={styles.switchLink}>Xvond Smart Store<Arrow /></Link>
+      <section className={`${styles.storeHero} ${styles.lifestyleHero}`}>
+        <div className={styles.heroBrand}>
+          <span>Xvond</span>
+          <h1>Lifestyle</h1>
+          <strong>Store</strong>
+        </div>
+        <div className={styles.heroActions}>
+          <Link href={`/${locale}/category/new-arrivals`} className={styles.primaryAction}>{ar ? "وصل حديثًا" : "New arrivals"}<Arrow /></Link>
+          <Link href={`/${locale}/smart`} className={styles.switchAction}>Smart Store<Arrow /></Link>
+        </div>
       </section>
 
-      <section className={styles.section}>
-        <div className={styles.sectionHead}><div><p>LIFESTYLE COLLECTIONS</p><h2>{ar ? "اختار القسم" : "Choose a collection"}</h2><span>{ar ? "نبدأ بعدد محدود من الأقسام والمنتجات، ونوسع فقط حسب اللي يثبت نفسه بالمبيعات." : "Start focused and expand only where products prove themselves through real sales."}</span></div></div>
-        <div className={styles.grid}>
+      <section className={styles.collectionSection}>
+        <div className={styles.sectionTitle}>
+          <span>SHOP LIFESTYLE</span>
+          <h2>{ar ? "الأقسام" : "Collections"}</h2>
+        </div>
+        <div className={styles.collectionGrid}>
           {lifestyle.map((category, index) => {
             if (!category) return null;
             const Icon = icons[category.slug as keyof typeof icons] ?? ShoppingBagIcon;
-            return <Link key={category.slug} href={`/${locale}/category/${category.slug}`} className={styles.card}><div className={styles.cardTop}><span className={styles.number}>{String(index + 1).padStart(2, "0")}</span><Icon /></div><div><h3>{category.label[locale]}</h3><p>{category.description[locale]}</p><span className={styles.explore}>{ar ? "تسوّق القسم" : "Shop collection"}<Arrow /></span></div></Link>;
+            return (
+              <Link key={category.slug} href={`/${locale}/category/${category.slug}`} className={`${styles.collectionCard} ${styles.lifestyleCard}`}>
+                <div className={styles.collectionTop}><span>{String(index + 1).padStart(2, "0")}</span><Icon /></div>
+                <div className={styles.collectionBottom}>
+                  <h3>{category.label[locale]}</h3>
+                  <span className={styles.enterCollection}>{ar ? "تسوّق" : "Shop"}<Arrow /></span>
+                </div>
+              </Link>
+            );
           })}
         </div>
-        <div className={styles.note}>{ar ? "Xvond Lifestyle Store مو متجر عام بلا حدود. أي فئة جديدة لازم تدخل كCollection واضحة ولها سبب تجاري، حتى يضل شكل المتجر مرتب حتى مع 20–30 منتج فقط." : "Xvond Lifestyle Store is not an unlimited general store. New categories should enter as deliberate collections with a commercial reason, keeping the store coherent even with only 20–30 products."}</div>
       </section>
     </main>
   );
