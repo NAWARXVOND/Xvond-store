@@ -4,10 +4,10 @@ import { notFound } from "next/navigation";
 import { ArrowLeftIcon, ArrowRightIcon, BoltIcon, GiftIcon } from "@heroicons/react/24/outline";
 import { getCategories } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
+import { SMART_CATEGORY_SLUGS, storeNewArrivalsPath } from "@/lib/store-context";
 import { absoluteUrl } from "@/lib/urls";
 import styles from "../store-channel.module.css";
 
-const smartSlugs = ["electronics", "xvond-box"] as const;
 const icons = { electronics: BoltIcon, "xvond-box": GiftIcon } as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -23,7 +23,7 @@ export default async function SmartPage({ params }: { params: Promise<{ locale: 
   const ar = locale === "ar";
   const Arrow = ar ? ArrowLeftIcon : ArrowRightIcon;
   const categories = await getCategories();
-  const smart = smartSlugs.map((slug) => categories.find((category) => category.slug === slug)).filter(Boolean);
+  const smart = SMART_CATEGORY_SLUGS.map((slug) => categories.find((category) => category.slug === slug)).filter(Boolean);
 
   return (
     <main className={styles.page}>
@@ -34,7 +34,7 @@ export default async function SmartPage({ params }: { params: Promise<{ locale: 
           <strong>Store</strong>
         </div>
         <div className={styles.heroActions}>
-          <Link href={`/${locale}/category/new-arrivals`} className={styles.primaryAction}>{ar ? "وصل حديثًا" : "New arrivals"}<Arrow /></Link>
+          <Link href={storeNewArrivalsPath(locale, "smart")} className={styles.primaryAction}>{ar ? "وصل حديثًا" : "New arrivals"}<Arrow /></Link>
           <Link href={`/${locale}/lifestyle`} className={styles.switchAction}>Lifestyle Store<Arrow /></Link>
         </div>
       </section>
