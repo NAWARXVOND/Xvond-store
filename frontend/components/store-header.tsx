@@ -14,11 +14,26 @@ export function StoreHeader({ locale }: { locale: Locale }) {
   const otherLocale = locale === "ar" ? "en" : "ar";
   const languagePath = pathname.replace(`/${locale}`, `/${otherLocale}`);
   const ar = locale === "ar";
+  const gateway = pathname === `/${locale}`;
+
+  if (gateway) {
+    return (
+      <header className="site-header gateway-header">
+        <div className="header-shell gateway-header-shell">
+          <Link href={`/${locale}`} className="brand" aria-label="Xvond Store home">
+            <span className="brand-mark">X</span>
+            <span><strong>Xvond</strong><small>STORE</small></span>
+          </Link>
+          <Link href={languagePath || `/${otherLocale}`} className="language-switch" hrefLang={otherLocale}>{otherLocale.toUpperCase()}</Link>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="site-header marketplace-header">
       <div className="announcement marketplace-announcement">
-        <span>{ar ? "Xvond Lifestyle Store + Xvond Smart Store" : "Xvond Lifestyle Store + Xvond Smart Store"}</span>
+        <span>Xvond Lifestyle Store + Xvond Smart Store</span>
         <Link href={`/${locale}/track-order`}>{ar ? "تتبع طلبك" : "Track order"}</Link>
       </div>
       <div className="header-shell marketplace-header-shell">
