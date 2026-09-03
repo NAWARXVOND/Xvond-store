@@ -10,7 +10,8 @@ CATEGORIES = (
     ("kids", "أطفال", "Kids"),
     ("electronics", "إلكترونيات", "Electronics"),
     ("xvond-box", "Xvond Box", "Xvond Box"),
-    ("luxury-gifts", "هدايا فاخرة", "Luxury Gifts"),
+    ("luxury-gifts", "هدايا", "Gifts"),
+    ("automotive", "السيارات ومستلزماتها", "Automotive"),
 )
 
 

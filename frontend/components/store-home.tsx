@@ -9,6 +9,7 @@ export function StoreHome({ locale, categories, products }: { locale: Locale; ca
   const t = copy[locale];
   const Arrow = locale === "ar" ? ArrowLeftIcon : ArrowRightIcon;
   const assetPath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+  const ar = locale === "ar";
 
   return (
     <main>
@@ -17,21 +18,21 @@ export function StoreHome({ locale, categories, products }: { locale: Locale; ca
           <p className="eyebrow">{t.heroEyebrow}</p>
           <h1>{t.heroTitle}</h1>
           <p className="hero-body">{t.heroBody}</p>
-          <Link className="primary-button" href={`/${locale}/category/new-arrivals`}>
+          <Link className="primary-button" href={`/${locale}/shop`}>
             {t.shopNow}<Arrow />
           </Link>
         </div>
         <div className="hero-visual">
           <Image
             src={`${assetPath}/hero-abstract.svg`}
-            alt={locale === "ar" ? "تشكيلة هدايا فاخرة من Xvond Store" : "Xvond Store luxury gift selection"}
+            alt={ar ? "تشكيلة مختارة من Xvond Store" : "Xvond Store curated selection"}
             fill priority sizes="(max-width: 800px) 100vw, 50vw"
           />
           <div className="hero-visual-label"><span>XVOND</span> SELECTED</div>
         </div>
       </section>
 
-      <section className="category-strip shell" aria-label={locale === "ar" ? "أقسام المتجر" : "Store categories"}>
+      <section className="category-strip shell" aria-label={ar ? "أقسام المتجر" : "Store categories"}>
         {categories.map((category) => (
           <Link href={`/${locale}/category/${category.slug}`} key={category.slug} className="category-card">
             <span>{category.slug === "xvond-box" ? "X" : category.label.en.charAt(0)}</span>
@@ -65,10 +66,20 @@ export function StoreHome({ locale, categories, products }: { locale: Locale; ca
         <div className="luxury-overlay"><p>XVOND GIFTING</p><h2>{t.luxuryTitle}</h2><span>{t.luxuryBody}</span><Link href={`/${locale}/category/luxury-gifts`}>{t.discover}<Arrow /></Link></div>
       </section>
 
+      <section className="box-feature shell">
+        <div className="feature-copy">
+          <p className="eyebrow">ABOUT XVOND STORE</p>
+          <h2>{ar ? "متجر واحد لاختيارات أكثر ذكاءً" : "One store, smarter choices"}</h2>
+          <p>{ar ? "Xvond Store يجمع أقسامًا مختلفة في تجربة تسوق واحدة واضحة وسريعة، من الأزياء والإلكترونيات إلى الهدايا وXvond Box ومستلزمات السيارات. هدفنا أن يكون الوصول للمنتج المناسب أسهل، مع تجربة شراء موثوقة من أول تصفح حتى استلام الطلب." : "Xvond Store brings multiple departments into one clear, fast shopping experience, from fashion and electronics to gifts, Xvond Box and automotive essentials. The goal is simple: make the right product easier to find, with a reliable journey from browsing to delivery."}</p>
+          <Link className="secondary-button" href={`/${locale}/shop`}>{ar ? "استكشف الأقسام" : "Explore departments"}<Arrow /></Link>
+        </div>
+        <div className="box-art"><span className="box-logo">X</span></div>
+      </section>
+
       <section className="trust-row shell">
-        <div><TruckIcon /><span><strong>{t.delivery}</strong><small>{locale === "ar" ? "خيارات مرنة عند الإطلاق" : "Flexible options at launch"}</small></span></div>
-        <div><CheckBadgeIcon /><span><strong>{t.secure}</strong><small>{locale === "ar" ? "حماية لبيانات الطلب" : "Order data protected"}</small></span></div>
-        <div><LifebuoyIcon /><span><strong>{t.support}</strong><small>{locale === "ar" ? "قبل وبعد الشراء" : "Before and after purchase"}</small></span></div>
+        <div><TruckIcon /><span><strong>{t.delivery}</strong><small>{ar ? "خيارات مرنة عند الإطلاق" : "Flexible options at launch"}</small></span></div>
+        <div><CheckBadgeIcon /><span><strong>{t.secure}</strong><small>{ar ? "حماية لبيانات الطلب" : "Order data protected"}</small></span></div>
+        <div><LifebuoyIcon /><span><strong>{t.support}</strong><small>{ar ? "قبل وبعد الشراء" : "Before and after purchase"}</small></span></div>
       </section>
     </main>
   );

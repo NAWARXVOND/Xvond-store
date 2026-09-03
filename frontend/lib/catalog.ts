@@ -7,6 +7,15 @@ export type Category = {
   description: { ar?: string; en?: string };
 };
 
+export const STORE_CATEGORIES: Category[] = [
+  { id: "department-women", slug: "women", label: { ar: "نساء", en: "Women" }, description: { ar: "أزياء، جمال، حقائب وإكسسوارات مختارة للنساء.", en: "Fashion, beauty, bags and accessories selected for women." } },
+  { id: "department-kids", slug: "kids", label: { ar: "أطفال", en: "Kids" }, description: { ar: "اختيارات للأطفال من الملابس والألعاب والاحتياجات اليومية.", en: "Kids clothing, toys and everyday essentials." } },
+  { id: "department-electronics", slug: "electronics", label: { ar: "إلكترونيات", en: "Electronics" }, description: { ar: "إلكترونيات وأجهزة وإكسسوارات تقنية للاستخدام اليومي.", en: "Electronics, devices and practical tech accessories." } },
+  { id: "department-xvond-box", slug: "xvond-box", label: { ar: "Xvond Box", en: "Xvond Box" }, description: { ar: "صناديق وتجارب مختارة من Xvond للمناسبات والمفاجآت.", en: "Curated Xvond boxes for occasions, gifting and surprises." } },
+  { id: "department-gifts", slug: "luxury-gifts", label: { ar: "هدايا", en: "Gifts" }, description: { ar: "هدايا مميزة ومختارة للمناسبات المختلفة.", en: "Distinctive curated gifts for every occasion." } },
+  { id: "department-automotive", slug: "automotive", label: { ar: "السيارات ومستلزماتها", en: "Automotive" }, description: { ar: "إكسسوارات ومستلزمات عملية للسيارة والقيادة.", en: "Practical car accessories and driving essentials." } },
+];
+
 export type Product = {
   id: string;
   slug: string;
@@ -107,7 +116,11 @@ async function apiFetch<T>(path: string): Promise<T | null> {
 
 export async function getCategories(): Promise<Category[]> {
   const data = await apiFetch<ApiCategory[]>("/catalog/categories");
-  return data?.map(toCategory) ?? [];
+  if (!data) return STORE_CATEGORIES;
+  const live = data.map(toCategory);
+  const bySlug = new Map(live.map((category) => [category.slug, category]));
+  return STORE_CATEGORIES.map((fallback) => bySlug.get(fallback.slug) ?? fallback)
+    .concat(live.filter((category) => !STORE_CATEGORIES.some((fallback) => fallback.slug === category.slug)));
 }
 
 export async function getProducts(filters: ProductFilters = {}): Promise<Product[]> {
