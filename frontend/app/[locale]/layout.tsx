@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { direction, isLocale, locales } from "@/lib/i18n";
 import { StoreHeader } from "@/components/store-header";
@@ -7,7 +8,6 @@ import { absoluteUrl } from "@/lib/urls";
 import { CommerceProvider } from "@/components/commerce-provider";
 import "../legal.css";
 import "../marketplace.css";
-import "../curated-store.css";
 import "../store-gateway.css";
 
 export function generateStaticParams() { return locales.map((locale) => ({ locale })); }
@@ -22,7 +22,12 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   };
   return (
     <div lang={locale} dir={direction(locale)} className={`locale-${locale}`}>
-      <CommerceProvider><StoreHeader locale={locale} />{children}<StoreFooter locale={locale} /><MobileStoreNav locale={locale} /></CommerceProvider>
+      <CommerceProvider>
+        <Suspense fallback={null}><StoreHeader locale={locale} /></Suspense>
+        {children}
+        <Suspense fallback={null}><StoreFooter locale={locale} /></Suspense>
+        <Suspense fallback={null}><MobileStoreNav locale={locale} /></Suspense>
+      </CommerceProvider>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organization).replace(/</g, "\\u003c") }} />
     </div>
   );

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { isLocale } from "@/lib/i18n";
 import { WishlistView } from "@/components/wishlist-view";
@@ -7,5 +8,5 @@ export default async function WishlistPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const products = await getProducts({ limit: 100 });
-  return <WishlistView locale={locale} products={products} />;
+  return <Suspense fallback={null}><WishlistView locale={locale} products={products} /></Suspense>;
 }

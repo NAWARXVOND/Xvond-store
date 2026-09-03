@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
 import { getCategories, getProducts } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
+import { storeForCategorySlug, storeHomePath } from "@/lib/store-context";
 import { absoluteUrl } from "@/lib/urls";
 
 type Query = { min?: string; max?: string; stock?: string; sort?: "newest" | "price-asc" | "price-desc" };
@@ -12,10 +14,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!isLocale(locale)) return {};
   const categories = await getCategories();
   const category = categories.find((item) => item.slug === slug);
-  const title = category?.label[locale] || (locale === "ar" ? "وصل حديثًا" : "New Arrivals");
+  if (!category) return {};
   return {
-    title,
-    description: category?.description[locale],
+    title: category.label[locale],
+    description: category.description[locale],
     alternates: { canonical: absoluteUrl(`/${locale}/category/${slug}`) },
   };
 }
@@ -23,24 +25,30 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function CategoryPage({ params, searchParams }: { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<Query> }) {
   const [{ locale, slug }, query] = await Promise.all([params, searchParams]);
   if (!isLocale(locale)) notFound();
+  if (slug === "new-arrivals") redirect(`/${locale}`);
+
   const categories = await getCategories();
   const category = categories.find((item) => item.slug === slug);
-  if (!category && slug !== "new-arrivals") notFound();
+  if (!category) notFound();
+  const store = storeForCategorySlug(category.slug);
+  if (!store) notFound();
+
   const products = await getProducts({
-    category: category?.slug,
+    category: category.slug,
     minPrice: query.min,
     maxPrice: query.max,
     inStock: query.stock === "1",
     sort: query.sort || "newest",
   });
   const ar = locale === "ar";
-  const title = category?.label[locale] || (ar ? "وصل حديثًا" : "New Arrivals");
+  const storeName = store === "lifestyle" ? "Xvond Lifestyle Store" : "Xvond Smart Store";
 
   return (
     <main className="content-page shell">
-      <p className="eyebrow">XVOND COLLECTION</p>
-      <h1>{title}</h1>
-      {category?.description[locale] && <p className="page-intro">{category.description[locale]}</p>}
+      <Link href={storeHomePath(locale, store)} className="secondary-button">← {storeName}</Link>
+      <p className="eyebrow" style={{ marginTop: "2rem" }}>{storeName.toUpperCase()}</p>
+      <h1>{category.label[locale]}</h1>
+      {category.description[locale] && <p className="page-intro">{category.description[locale]}</p>}
       <form className="catalog-filters">
         <label>{ar ? "السعر من" : "Min price"}<input name="min" type="number" min="0" step="0.001" defaultValue={query.min} /></label>
         <label>{ar ? "السعر إلى" : "Max price"}<input name="max" type="number" min="0" step="0.001" defaultValue={query.max} /></label>

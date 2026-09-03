@@ -7,6 +7,7 @@ import { HeartIcon as HeartSolidIcon } from "@heroicons/react/24/solid";
 import type { Locale } from "@/lib/i18n";
 import type { Product } from "@/lib/catalog";
 import { formatPrice } from "@/lib/catalog";
+import { appendStoreContext, storeForCategorySlug } from "@/lib/store-context";
 import { useCommerce } from "./commerce-provider";
 
 export function ProductCard({ product, locale }: { product: Product; locale: Locale }) {
@@ -16,17 +17,18 @@ export function ProductCard({ product, locale }: { product: Product; locale: Loc
     ? Math.round((1 - product.price / product.previousPrice) * 100)
     : 0;
   const ar = locale === "ar";
+  const productHref = appendStoreContext(`/${locale}/product/${product.slug}`, storeForCategorySlug(product.category));
 
   return (
     <article className="product-card marketplace-product-card">
-      <Link href={`/${locale}/product/${product.slug}`} className="product-image-wrap marketplace-product-image">
+      <Link href={productHref} className="product-image-wrap marketplace-product-image">
         <Image src={product.image} alt={product.name[locale]} fill sizes="(max-width: 640px) 48vw, 20vw" className="product-image" />
         {discount > 0 && <span className="marketplace-discount">-{discount}%</span>}
         {product.stock < 1 && <span className="marketplace-stock-badge">{ar ? "نفد" : "Sold out"}</span>}
       </Link>
       <div className="product-copy marketplace-product-copy">
         <div className="product-info">
-          <Link href={`/${locale}/product/${product.slug}`} className="product-name">{product.name[locale]}</Link>
+          <Link href={productHref} className="product-name">{product.name[locale]}</Link>
           <div className="price-line">
             <strong>{formatPrice(product.price, locale)}</strong>
             {product.previousPrice && <del>{formatPrice(product.previousPrice, locale)}</del>}
