@@ -15,6 +15,23 @@
 .curated-hero-stamp span { color:var(--cyan); font-weight:800; }
 .curated-hero-stamp b { color:#d8e4f2; }
 
+.store-paths { display:grid; grid-template-columns:1fr 1fr; gap:1rem; padding-block:0 4rem; }
+.store-path-card { min-height:390px; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; position:relative; overflow:hidden; padding:clamp(2rem,4vw,4rem); border:1px solid var(--line); border-radius:1.6rem; transition:transform .25s ease,border-color .25s ease; }
+.store-path-card:hover { transform:translateY(-5px); border-color:var(--line-strong); }
+.store-path-card::after { content:""; position:absolute; inset:0; pointer-events:none; }
+.lifestyle-path { background:linear-gradient(145deg,#10192b,#060a12); }
+.lifestyle-path::after { background:radial-gradient(circle at 80% 15%,rgba(115,153,255,.15),transparent 34%); }
+.smart-path { background:linear-gradient(145deg,#071a29,#030711); border-color:rgba(80,213,255,.28); box-shadow:0 30px 80px rgba(22,140,255,.08); }
+.smart-path::after { background:radial-gradient(circle at 78% 18%,rgba(80,213,255,.2),transparent 36%); }
+.store-path-card > * { position:relative; z-index:1; }
+.store-path-icon { width:58px; height:58px; display:grid; place-items:center; margin-bottom:auto; border:1px solid var(--line-strong); border-radius:18px; background:rgba(22,140,255,.08); }
+.store-path-icon svg { width:1.8rem; color:var(--cyan); }
+.store-path-card p { margin:2rem 0 .7rem; color:var(--cyan); font-size:.7rem; font-weight:800; letter-spacing:.15em; }
+.store-path-card h2 { max-width:630px; margin:0; font-size:clamp(2rem,3.5vw,3.5rem); line-height:1.15; letter-spacing:-.04em; }
+.store-path-card > span { max-width:620px; margin:1rem 0 1.4rem; color:var(--muted); line-height:1.8; }
+.store-path-card b { display:inline-flex; align-items:center; gap:.45rem; font-size:.82rem; }
+.store-path-card b svg { width:1rem; }
+
 .curated-collections, .curated-products, .curated-signature, .curated-story { padding-block: 2rem 5rem; }
 .curated-section-heading { display:flex; justify-content:space-between; align-items:flex-end; gap:1.5rem; margin-bottom:1.5rem; }
 .curated-section-heading p, .curated-story > div:first-child > p, .curated-signature p { margin:0 0 .5rem; color:var(--cyan); font-size:.72rem; font-weight:800; letter-spacing:.15em; text-transform:uppercase; }
@@ -29,11 +46,22 @@
 .curated-collection-card::after { content:""; position:absolute; inset:0; background:radial-gradient(circle at 80% 15%,rgba(80,213,255,.12),transparent 34%); pointer-events:none; }
 .curated-collection-1, .curated-collection-2 { grid-column:span 6; }
 .curated-collection-3, .curated-collection-4, .curated-collection-5, .curated-collection-6 { grid-column:span 3; min-height:220px; }
+.lifestyle-collection-grid .curated-collection-3, .lifestyle-collection-grid .curated-collection-4 { grid-column:span 6; }
 .curated-collection-mark { position:relative; z-index:1; width:52px; height:52px; display:grid; place-items:center; border-radius:50%; border:1px solid var(--line-strong); color:var(--cyan); background:rgba(22,140,255,.1); font-weight:800; }
 .curated-collection-card > div { position:relative; z-index:1; display:flex; flex-direction:column; align-items:flex-start; gap:.45rem; }
 .curated-collection-card small { color:var(--muted); line-height:1.6; }
 .curated-collection-card strong { font-size:clamp(1.25rem,2vw,2rem); }
 .curated-collection-card b { display:inline-flex; align-items:center; gap:.4rem; margin-top:.3rem; color:#dce7f5; font-size:.76rem; }
+
+.smart-collections-section { padding-top:0; }
+.smart-mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+.smart-mini-card { min-height:260px; display:grid; grid-template-columns:auto 1fr; align-items:end; gap:1.2rem; padding:1.7rem; border:1px solid rgba(80,213,255,.22); border-radius:1.4rem; background:radial-gradient(circle at 80% 15%,rgba(80,213,255,.12),transparent 32%),linear-gradient(145deg,#071526,#030711); }
+.smart-mini-card > span { align-self:start; width:58px; height:58px; display:grid; place-items:center; border:1px solid rgba(80,213,255,.34); border-radius:18px; color:var(--cyan); font-size:1.2rem; font-weight:800; }
+.smart-mini-card > div { display:flex; flex-direction:column; align-items:flex-start; gap:.45rem; }
+.smart-mini-card small { color:var(--muted); line-height:1.7; }
+.smart-mini-card strong { font-size:clamp(1.6rem,3vw,2.8rem); }
+.smart-mini-card b { display:inline-flex; align-items:center; gap:.45rem; margin-top:.35rem; font-size:.8rem; }
+.smart-mini-card svg { width:1rem; }
 
 .curated-product-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1.15rem; }
 .curated-product-grid .product-image-wrap { aspect-ratio:.82; border-radius:1.35rem; }
@@ -60,10 +88,9 @@
 .curated-story-points span { color:var(--muted); font-size:.74rem; line-height:1.7; }
 
 @media (max-width: 980px) {
-  .curated-hero, .curated-signature, .curated-story { grid-template-columns:1fr; }
+  .curated-hero, .curated-signature, .curated-story, .store-paths { grid-template-columns:1fr; }
   .curated-hero-copy, .curated-hero-art { min-height:430px; }
-  .curated-collection-1, .curated-collection-2 { grid-column:span 6; }
-  .curated-collection-3, .curated-collection-4, .curated-collection-5, .curated-collection-6 { grid-column:span 6; }
+  .curated-collection-1, .curated-collection-2, .curated-collection-3, .curated-collection-4, .curated-collection-5, .curated-collection-6 { grid-column:span 6; }
   .curated-product-grid { grid-template-columns:repeat(2,1fr); }
 }
 
@@ -72,10 +99,12 @@
   .curated-hero-copy { min-height:390px; padding:1.5rem; }
   .curated-hero-copy h1 { font-size:clamp(2.5rem,13vw,4rem); }
   .curated-hero-art { min-height:300px; }
+  .store-path-card { min-height:340px; padding:1.5rem; }
   .curated-section-heading { align-items:flex-start; flex-direction:column; }
-  .curated-collection-grid { grid-template-columns:1fr; }
+  .curated-collection-grid, .smart-mini-grid { grid-template-columns:1fr; }
   .curated-collection-1, .curated-collection-2, .curated-collection-3, .curated-collection-4, .curated-collection-5, .curated-collection-6 { grid-column:auto; min-height:190px; }
   .curated-product-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.7rem; }
+  .smart-mini-card { min-height:220px; }
   .curated-signature-box { grid-template-columns:1fr; min-height:380px; }
   .curated-signature-x { position:absolute; inset-inline-end:1rem; inset-block-end:-1rem; opacity:.25; }
   .curated-story-points { grid-template-columns:1fr 1fr; }
