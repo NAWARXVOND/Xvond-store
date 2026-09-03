@@ -26,7 +26,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: clamp(2rem, 5vw, 5rem);
   overflow: hidden;
   isolation: isolate;
@@ -70,14 +70,18 @@
     linear-gradient(145deg, #071a32 0%, #040b18 52%, #01040a 100%);
 }
 
+.store-gateway-title { margin-top: auto; }
+
 .store-gateway-brand {
-  color: var(--cyan);
-  font-size: .72rem;
-  font-weight: 900;
-  letter-spacing: .28em;
+  display: block;
+  margin-bottom: .2rem;
+  color: var(--blue);
+  font-size: clamp(3.6rem, 7.6vw, 7.6rem);
+  line-height: .84;
+  letter-spacing: -.07em;
+  font-weight: 850;
 }
 
-.store-gateway-title { margin-top: auto; }
 .store-gateway-title h1 {
   margin: 0;
   font-size: clamp(4.25rem, 9vw, 9rem);
@@ -116,6 +120,7 @@
   .store-gateway-grid { grid-template-columns: 1fr; min-height: auto; }
   .store-gateway-card { min-height: calc((100svh - 76px) / 2); padding: 1.6rem; border-inline-end: 0; border-bottom: 1px solid rgba(133,180,255,.14); }
   .store-gateway-card:last-child { border-bottom: 0; }
+  .store-gateway-brand { font-size: clamp(3rem, 15vw, 5rem); }
   .store-gateway-title h1 { font-size: clamp(3.6rem, 19vw, 6rem); }
   .store-gateway-enter { margin-top: 2rem; }
 }
