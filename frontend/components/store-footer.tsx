@@ -1,8 +1,15 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
 
 export function StoreFooter({ locale }: { locale: Locale }) {
+  const pathname = usePathname();
   const ar = locale === "ar";
+
+  if (pathname === `/${locale}`) return null;
+
   return (
     <footer className="footer">
       <div className="footer-brand">
