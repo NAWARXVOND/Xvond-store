@@ -74,12 +74,15 @@
 
 .store-gateway-brand {
   display: block;
+  width: 100%;
   margin-bottom: .2rem;
   color: var(--blue);
   font-size: clamp(3.6rem, 7.6vw, 7.6rem);
   line-height: .84;
   letter-spacing: -.07em;
   font-weight: 850;
+  direction: ltr;
+  text-align: left;
 }
 
 .store-gateway-title h1 {
