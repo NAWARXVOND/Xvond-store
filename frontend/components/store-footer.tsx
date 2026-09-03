@@ -11,7 +11,7 @@ export function StoreFooter({ locale }: { locale: Locale }) {
   const ar = locale === "ar";
   const store = storeForPath(pathname, locale, searchParams.get("store"));
 
-  if (pathname === `/${locale}`) return null;
+  if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/admin`)) return null;
 
   const storeName = store === "lifestyle" ? "Xvond Lifestyle Store" : store === "smart" ? "Xvond Smart Store" : "Xvond Store";
   const shopHref = store ? `/${locale}/${store}` : `/${locale}`;
@@ -20,7 +20,7 @@ export function StoreFooter({ locale }: { locale: Locale }) {
     <footer className="footer">
       <div className="footer-brand">
         <span className="brand-mark">X</span>
-        <div><strong>{storeName}</strong><p>{ar ? "Xvond Store" : "Xvond Store"}</p></div>
+        <div><strong>{storeName}</strong><p>Xvond Store</p></div>
       </div>
       <div className="footer-links">
         <Link href={shopHref}>{ar ? "المتجر" : "Store"}</Link>
