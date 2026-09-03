@@ -8,6 +8,7 @@ import { CommerceProvider } from "@/components/commerce-provider";
 import "../legal.css";
 import "../marketplace.css";
 import "../curated-store.css";
+import "../store-gateway.css";
 
 export function generateStaticParams() { return locales.map((locale) => ({ locale })); }
 
