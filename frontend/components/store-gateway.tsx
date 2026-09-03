@@ -10,8 +10,8 @@ export function StoreGateway({ locale }: { locale: Locale }) {
     <main className="store-gateway">
       <section className="store-gateway-grid" aria-label={ar ? "اختر متجر Xvond" : "Choose an Xvond store"}>
         <Link href={`/${locale}/lifestyle`} className="store-gateway-card lifestyle-gateway-card">
-          <span className="store-gateway-brand">XVOND</span>
           <div className="store-gateway-title">
+            <span className="store-gateway-brand">Xvond</span>
             <h1>Lifestyle</h1>
             <strong>Store</strong>
           </div>
@@ -19,8 +19,8 @@ export function StoreGateway({ locale }: { locale: Locale }) {
         </Link>
 
         <Link href={`/${locale}/smart`} className="store-gateway-card smart-gateway-card">
-          <span className="store-gateway-brand">XVOND</span>
           <div className="store-gateway-title">
+            <span className="store-gateway-brand">Xvond</span>
             <h1>Smart</h1>
             <strong>Store</strong>
           </div>
