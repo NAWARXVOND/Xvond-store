@@ -20,7 +20,7 @@
   overflow: hidden;
 }
 
-.hero p {
+.hero p, .groupHead p {
   margin: 0 0 1rem;
   color: #50d5ff;
   font-size: .72rem;
@@ -58,9 +58,65 @@
 }
 
 .newLink svg,
-.explore svg {
+.explore svg,
+.storeChoice b svg {
   width: 1rem;
 }
+
+.storeSplit {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.storeChoice {
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 1.8rem;
+  border: 1px solid rgba(133, 180, 255, .16);
+  border-radius: 1.4rem;
+  background: linear-gradient(150deg, rgba(13, 27, 49, .95), rgba(5, 11, 20, .98));
+}
+
+.smartChoice {
+  border-color: rgba(80, 213, 255, .28);
+  background: radial-gradient(circle at 80% 15%, rgba(80, 213, 255, .14), transparent 32%), linear-gradient(145deg, #071526, #030711);
+}
+
+.storeChoice > span {
+  margin-bottom: .7rem;
+  color: #50d5ff;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.storeChoice h2 {
+  margin: 0;
+  font-size: clamp(1.9rem, 3.5vw, 3.4rem);
+  letter-spacing: -.045em;
+}
+
+.storeChoice p {
+  max-width: 560px;
+  margin: .9rem 0 1.2rem;
+  color: #9baac0;
+  line-height: 1.8;
+}
+
+.storeChoice b {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font-size: .8rem;
+}
+
+.groupSection { margin-top: 3rem; }
+.groupHead { margin-bottom: 1rem; }
+.groupHead h2 { margin: 0; font-size: clamp(1.8rem, 3vw, 3rem); letter-spacing: -.04em; }
 
 .departmentGrid {
   display: grid;
@@ -131,7 +187,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: .75rem;
-  margin-top: 1rem;
+  margin-top: 3rem;
 }
 
 .marketBar > div {
@@ -155,18 +211,12 @@
   gap: .3rem;
 }
 
-.marketBar strong {
-  font-size: .8rem;
-}
-
-.marketBar small {
-  color: #8190a5;
-  font-size: .68rem;
-}
+.marketBar strong { font-size: .8rem; }
+.marketBar small { color: #8190a5; font-size: .68rem; }
 
 @media (max-width: 900px) {
   .hero { align-items: start; flex-direction: column; }
-  .departmentGrid { grid-template-columns: repeat(2, 1fr); }
+  .storeSplit, .departmentGrid { grid-template-columns: repeat(2, 1fr); }
   .marketBar { grid-template-columns: 1fr; }
 }
 
@@ -174,6 +224,6 @@
   .page { width: min(100% - 1rem, 1220px); padding-top: .75rem; }
   .hero { min-height: 0; padding: 2rem 1.25rem; border-radius: 1.2rem; }
   .hero h1 { font-size: 2.3rem; }
-  .departmentGrid { grid-template-columns: 1fr; }
-  .departmentCard { min-height: 245px; }
+  .storeSplit, .departmentGrid { grid-template-columns: 1fr; }
+  .storeChoice, .departmentCard { min-height: 245px; }
 }
