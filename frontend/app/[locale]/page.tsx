@@ -19,6 +19,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const [categories, products] = await Promise.all([getCategories(), getProducts({ limit: 8 })]);
+  const [categories, products] = await Promise.all([getCategories(), getProducts({ limit: 12 })]);
   return <StoreHome locale={locale} categories={categories} products={products} />;
 }

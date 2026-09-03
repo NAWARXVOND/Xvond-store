@@ -7,6 +7,7 @@ import { absoluteUrl } from "@/lib/urls";
 import { CommerceProvider } from "@/components/commerce-provider";
 import "../legal.css";
 import "../marketplace.css";
+import "../curated-store.css";
 
 export function generateStaticParams() { return locales.map((locale) => ({ locale })); }
 
