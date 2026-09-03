@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { formatPrice, getProduct } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
+import { storeForCategorySlug, storeHomePath } from "@/lib/store-context";
 import { absoluteUrl } from "@/lib/urls";
 import { ProductPurchase } from "@/components/product-purchase";
 
@@ -25,6 +27,9 @@ export default async function ProductPage({ params }: { params: Promise<{ locale
   const product = await getProduct(slug);
   if (!product) notFound();
   const ar = locale === "ar";
+  const store = storeForCategorySlug(product.category);
+  if (!store) notFound();
+  const storeName = store === "lifestyle" ? "Xvond Lifestyle Store" : "Xvond Smart Store";
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -42,10 +47,11 @@ export default async function ProductPage({ params }: { params: Promise<{ locale
   };
   return (
     <main className="content-page shell">
-      <div className="box-feature product-detail">
+      <Link href={storeHomePath(locale, store)} className="secondary-button">← {storeName}</Link>
+      <div className="box-feature product-detail" style={{ marginTop: "1.5rem" }}>
         <div className="hero-visual"><Image src={product.image} alt={product.name[locale]} fill sizes="(max-width: 800px) 100vw, 50vw" /></div>
         <div className="feature-copy">
-          <p className="eyebrow">XVOND SELECTED</p>
+          <p className="eyebrow">{storeName.toUpperCase()}</p>
           <h1>{product.name[locale]}</h1>
           <div className="price-line"><strong>{formatPrice(product.price, locale)}</strong>{product.previousPrice && <del>{formatPrice(product.previousPrice, locale)}</del>}</div>
           {product.description[locale] && <p>{product.description[locale]}</p>}
