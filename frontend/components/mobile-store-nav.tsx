@@ -10,6 +10,9 @@ export function MobileStoreNav({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const { cartCount } = useCommerce();
   const ar = locale === "ar";
+
+  if (pathname === `/${locale}`) return null;
+
   const items = [
     { href: `/${locale}`, label: ar ? "الرئيسية" : "Home", icon: HomeIcon },
     { href: `/${locale}/shop`, label: ar ? "الأقسام" : "Shop", icon: Squares2X2Icon },
