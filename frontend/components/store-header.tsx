@@ -20,6 +20,9 @@ export function StoreHeader({ locale }: { locale: Locale }) {
   const languageHref = appendStoreContext(languagePath || `/${otherLocale}`, store);
   const ar = locale === "ar";
   const gateway = pathname === `/${locale}`;
+  const admin = pathname.startsWith(`/${locale}/admin`);
+
+  if (admin) return null;
 
   if (gateway) {
     return (
