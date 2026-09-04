@@ -29,6 +29,7 @@ export function StoreFooter({ locale }: { locale: Locale }) {
         <Link href={`/${locale}/returns`}>{ar ? "الاسترجاع والتبديل" : "Returns & Exchanges"}</Link>
       </div>
       <p className="copyright">© {new Date().getFullYear()} Xvond Store</p>
+      <p className="copyright">{ar ? "الجهة القانونية: مادلين للاستثمار · سجل تجاري 1655015 · المعبيلة الجنوبية، السيب، مسقط" : "Legal entity: Madlin For Investment · CR 1655015 · South Al Mabilah, Al Seeb, Muscat"}</p>
     </footer>
   );
 }
