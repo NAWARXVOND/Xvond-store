@@ -32,6 +32,12 @@ class VariantCreate(BaseModel):
     compare_at_price: Decimal | None = Field(default=None, gt=0, decimal_places=3)
     stock_quantity: int = Field(ge=0, le=1_000_000)
 
+    @model_validator(mode="after")
+    def validate_sale_price(self) -> "VariantCreate":
+        if self.compare_at_price is not None and self.compare_at_price <= self.price:
+            raise ValueError("compare_at_price must be greater than price")
+        return self
+
 
 class VariantUpdate(BaseModel):
     title_ar: str | None = Field(default=None, min_length=1, max_length=180)
@@ -39,6 +45,16 @@ class VariantUpdate(BaseModel):
     price: Decimal | None = Field(default=None, gt=0, decimal_places=3)
     compare_at_price: Decimal | None = Field(default=None, gt=0, decimal_places=3)
     stock_quantity: int | None = Field(default=None, ge=0, le=1_000_000)
+
+    @model_validator(mode="after")
+    def validate_sale_price(self) -> "VariantUpdate":
+        if self.compare_at_price is None:
+            return self
+        if self.price is None:
+            raise ValueError("price is required when setting compare_at_price")
+        if self.compare_at_price <= self.price:
+            raise ValueError("compare_at_price must be greater than price")
+        return self
 
 
 class AdminProductCreate(BaseModel):
