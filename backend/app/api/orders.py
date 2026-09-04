@@ -22,7 +22,7 @@ from app.schemas.orders import (
 )
 from app.services.email import queue_order_event
 from app.services.pricing import saving
-from app.services.shipping.local import normalize_governorate, shipping_amount
+from app.services.shipping.local import normalize_governorate
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -157,8 +157,8 @@ async def calculate_quote(
                 ShippingRate.is_active.is_(True),
             )
         )
-        if rate is not None:
-            shipping_total = shipping_amount(rate, subtotal - discount)
+        # Oman launch policy: delivery is free anywhere an active Oman delivery rate exists.
+        shipping_total = Decimal("0.000")
     return products, subtotal, discount, promotion, coupon, rate, shipping_total
 
 
@@ -214,6 +214,7 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
     session.add(
         Address(
             customer_id=customer.id,
+            country_code=payload.customer.countryCode,
             governorate=payload.customer.governorate,
             city=payload.customer.city,
             address_line=payload.customer.addressLine,
@@ -250,11 +251,12 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         customer_name=payload.customer.fullName,
         customer_email=str(payload.customer.email),
         customer_phone=payload.customer.phone,
-        shipping_country_code="OM",
+        shipping_country_code=payload.customer.countryCode,
         shipping_governorate=payload.customer.governorate,
         shipping_city=payload.customer.city,
         shipping_address_line=payload.customer.addressLine,
         payment_method=payload.payment_method,
+        currency="OMR",
         subtotal=subtotal,
         discount_total=discount,
         shipping_total=shipping_total,
