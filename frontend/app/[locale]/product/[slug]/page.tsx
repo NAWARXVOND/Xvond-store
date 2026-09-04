@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ProductPurchase } from "@/components/product-purchase";
 import { formatPrice, getProduct } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
 import { storeForCategorySlug, storeHomePath } from "@/lib/store-context";
 import { absoluteUrl } from "@/lib/urls";
-import { ProductPurchase } from "@/components/product-purchase";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;
@@ -30,6 +30,9 @@ export default async function ProductPage({ params }: { params: Promise<{ locale
   const store = storeForCategorySlug(product.category);
   if (!store) notFound();
   const storeName = store === "lifestyle" ? "Xvond Lifestyle Store" : "Xvond Smart Store";
+  const discount = product.previousPrice
+    ? Math.round((1 - product.price / product.previousPrice) * 100)
+    : 0;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -54,6 +57,7 @@ export default async function ProductPage({ params }: { params: Promise<{ locale
           <p className="eyebrow">{storeName.toUpperCase()}</p>
           <h1>{product.name[locale]}</h1>
           <div className="price-line"><strong>{formatPrice(product.price, locale)}</strong>{product.previousPrice && <del>{formatPrice(product.previousPrice, locale)}</del>}</div>
+          {discount > 0 && <small className="saving-label">{ar ? `وفر ${discount}%` : `Save ${discount}%`}</small>}
           {product.description[locale] && <p>{product.description[locale]}</p>}
           <p className={product.stock > 0 ? "stock-ready" : "stock-empty"}>{product.stock > 0 ? (ar ? `متوفر — ${product.stock} قطعة` : `In stock — ${product.stock} items`) : (ar ? "غير متوفر حاليًا" : "Currently out of stock")}</p>
           <ProductPurchase product={product} locale={locale} />
