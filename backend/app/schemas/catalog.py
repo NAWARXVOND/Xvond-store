@@ -12,6 +12,7 @@ class CategoryRead(BaseModel):
     name_en: str
     description_ar: str | None
     description_en: str | None
+    is_active: bool
 
 
 class VariantRead(BaseModel):

@@ -1,7 +1,14 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.admin import CouponWrite, DiscountWrite, VariantUpdate
+from app.schemas.admin import (
+    CategoryUpdate,
+    CouponUpdate,
+    CouponWrite,
+    DiscountUpdate,
+    DiscountWrite,
+    VariantUpdate,
+)
 
 
 def test_coupon_normal_values_are_valid() -> None:
@@ -28,3 +35,21 @@ def test_variant_update_accepts_live_commerce_values() -> None:
 def test_variant_update_rejects_negative_stock() -> None:
     with pytest.raises(ValidationError):
         VariantUpdate(stock_quantity=-1)
+
+
+def test_category_update_supports_visibility_control() -> None:
+    update = CategoryUpdate(name_en="Women", is_active=False)
+    assert update.name_en == "Women"
+    assert update.is_active is False
+
+
+def test_coupon_update_supports_activation_and_limits() -> None:
+    update = CouponUpdate(value="15", usage_limit=25, is_active=False)
+    assert str(update.value) == "15"
+    assert update.usage_limit == 25
+    assert update.is_active is False
+
+
+def test_discount_update_rejects_invalid_scope() -> None:
+    with pytest.raises(ValidationError):
+        DiscountUpdate(scope="customer")

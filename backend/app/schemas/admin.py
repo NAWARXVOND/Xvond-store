@@ -15,6 +15,15 @@ class CategoryCreate(BaseModel):
     description_en: str | None = Field(default=None, max_length=5000)
 
 
+class CategoryUpdate(BaseModel):
+    slug: str | None = Field(default=None, pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=140)
+    name_ar: str | None = Field(default=None, min_length=2, max_length=200)
+    name_en: str | None = Field(default=None, min_length=2, max_length=200)
+    description_ar: str | None = Field(default=None, max_length=5000)
+    description_en: str | None = Field(default=None, max_length=5000)
+    is_active: bool | None = None
+
+
 class VariantCreate(BaseModel):
     sku: str = Field(min_length=2, max_length=80)
     title_ar: str = Field(min_length=1, max_length=180)
@@ -65,6 +74,16 @@ class CouponWrite(BaseModel):
     is_active: bool = True
 
 
+class CouponUpdate(BaseModel):
+    discount_type: str | None = Field(default=None, pattern=r"^(percentage|fixed)$")
+    value: Decimal | None = Field(default=None, gt=0)
+    minimum_order_amount: Decimal | None = Field(default=None, ge=0)
+    usage_limit: int | None = Field(default=None, ge=1)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    is_active: bool | None = None
+
+
 class DiscountWrite(BaseModel):
     name: str = Field(min_length=2, max_length=160)
     discount_type: str = Field(pattern=r"^(percentage|fixed)$")
@@ -74,6 +93,17 @@ class DiscountWrite(BaseModel):
     starts_at: datetime | None = None
     ends_at: datetime | None = None
     is_active: bool = True
+
+
+class DiscountUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=160)
+    discount_type: str | None = Field(default=None, pattern=r"^(percentage|fixed)$")
+    value: Decimal | None = Field(default=None, gt=0)
+    scope: str | None = Field(default=None, pattern=r"^(store|category|product)$")
+    scope_reference: str | None = Field(default=None, max_length=180)
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    is_active: bool | None = None
 
 
 class ShippingRateWrite(BaseModel):
