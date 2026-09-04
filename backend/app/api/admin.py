@@ -22,7 +22,10 @@ from app.models.commerce import (
 from app.schemas.admin import (
     AdminProductCreate,
     CategoryCreate,
+    CategoryUpdate,
+    CouponUpdate,
     CouponWrite,
+    DiscountUpdate,
     DiscountWrite,
     OrderAdminRead,
     OrderStatusUpdate,
@@ -166,6 +169,20 @@ async def create_category(payload: CategoryCreate, session: Session) -> Category
     return category
 
 
+@router.patch("/categories/{category_id}", response_model=CategoryRead)
+async def update_category(
+    category_id: uuid.UUID, payload: CategoryUpdate, session: Session
+) -> Category:
+    category = await session.get(Category, category_id)
+    if category is None:
+        raise HTTPException(status_code=404, detail="Category not found")
+    for key, value in payload.model_dump(exclude_unset=True).items():
+        setattr(category, key, value)
+    await session.commit()
+    await session.refresh(category)
+    return category
+
+
 @router.delete("/categories/{category_id}", status_code=204)
 async def archive_category(category_id: uuid.UUID, session: Session) -> None:
     category = await session.get(Category, category_id)
@@ -254,8 +271,12 @@ async def list_coupons(session: Session) -> list[dict[str, object]]:
             "code": item.code,
             "discount_type": item.discount_type,
             "value": str(item.value),
-            "is_active": item.is_active,
+            "minimum_order_amount": str(item.minimum_order_amount) if item.minimum_order_amount is not None else None,
+            "usage_limit": item.usage_limit,
             "usage_count": item.usage_count,
+            "starts_at": item.starts_at,
+            "ends_at": item.ends_at,
+            "is_active": item.is_active,
         }
         for item in items
     ]
@@ -269,6 +290,19 @@ async def create_coupon(payload: CouponWrite, session: Session) -> dict[str, str
     session.add(coupon)
     await session.commit()
     return {"id": str(coupon.id), "code": coupon.code}
+
+
+@router.patch("/coupons/{coupon_id}")
+async def update_coupon(
+    coupon_id: uuid.UUID, payload: CouponUpdate, session: Session
+) -> dict[str, object]:
+    coupon = await session.get(Coupon, coupon_id)
+    if coupon is None:
+        raise HTTPException(status_code=404, detail="Coupon not found")
+    for key, value in payload.model_dump(exclude_unset=True).items():
+        setattr(coupon, key, value)
+    await session.commit()
+    return {"id": str(coupon.id), "code": coupon.code, "is_active": coupon.is_active}
 
 
 @router.delete("/coupons/{coupon_id}", status_code=204)
@@ -290,6 +324,9 @@ async def list_discounts(session: Session) -> list[dict[str, object]]:
             "discount_type": item.discount_type,
             "value": str(item.value),
             "scope": item.scope,
+            "scope_reference": item.scope_reference,
+            "starts_at": item.starts_at,
+            "ends_at": item.ends_at,
             "is_active": item.is_active,
         }
         for item in items
@@ -302,6 +339,19 @@ async def create_discount(payload: DiscountWrite, session: Session) -> dict[str,
     session.add(discount)
     await session.commit()
     return {"id": str(discount.id), "name": discount.name}
+
+
+@router.patch("/discounts/{discount_id}")
+async def update_discount(
+    discount_id: uuid.UUID, payload: DiscountUpdate, session: Session
+) -> dict[str, object]:
+    discount = await session.get(Discount, discount_id)
+    if discount is None:
+        raise HTTPException(status_code=404, detail="Discount not found")
+    for key, value in payload.model_dump(exclude_unset=True).items():
+        setattr(discount, key, value)
+    await session.commit()
+    return {"id": str(discount.id), "name": discount.name, "is_active": discount.is_active}
 
 
 @router.delete("/discounts/{discount_id}", status_code=204)
