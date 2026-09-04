@@ -4,9 +4,9 @@ Revision ID: 20260904_0013
 Revises: 20260904_0012
 """
 
+import uuid
 from collections.abc import Sequence
 from decimal import Decimal
-import uuid
 
 import sqlalchemy as sa
 from alembic import op
@@ -32,8 +32,8 @@ GOVERNORATES = [
 ]
 
 
-def upgrade() -> None:
-    shipping_rates = sa.table(
+def shipping_rates_table() -> sa.TableClause:
+    return sa.table(
         "shipping_rates",
         sa.column("id", sa.Uuid()),
         sa.column("governorate_key", sa.String()),
@@ -45,10 +45,14 @@ def upgrade() -> None:
         sa.column("estimated_days_max", sa.Integer()),
         sa.column("is_active", sa.Boolean()),
     )
+
+
+def upgrade() -> None:
+    shipping_rates = shipping_rates_table()
     connection = op.get_bind()
     existing = {
         row[0]
-        for row in connection.execute(sa.text("SELECT governorate_key FROM shipping_rates"))
+        for row in connection.execute(sa.select(shipping_rates.c.governorate_key))
     }
     rows = [
         {
@@ -70,7 +74,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    shipping_rates = shipping_rates_table()
     keys = [item[0] for item in GOVERNORATES]
-    op.execute(
-        sa.text("DELETE FROM shipping_rates WHERE governorate_key = ANY(:keys)").bindparams(keys=keys)
-    )
+    op.execute(sa.delete(shipping_rates).where(shipping_rates.c.governorate_key.in_(keys)))
