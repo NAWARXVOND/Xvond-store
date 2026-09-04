@@ -15,7 +15,8 @@ class LoginRequest(BaseModel):
 class ProfileRead(BaseModel):
     id: str
     full_name: str
-    email: str
+    email: str | None
+    phone: str | None = None
     email_verified: bool
 
 
