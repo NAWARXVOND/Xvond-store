@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
@@ -24,6 +25,7 @@ class CheckoutCreate(BaseModel):
     customer: CheckoutCustomer
     items: list[CheckoutItem] = Field(min_length=1, max_length=100)
     coupon_code: str | None = Field(default=None, min_length=2, max_length=60)
+    payment_method: Literal["tap", "cash_on_delivery"] = "tap"
 
 
 class CheckoutQuote(BaseModel):
@@ -49,6 +51,7 @@ class OrderCreated(BaseModel):
     order_number: str
     status: OrderStatus
     payment_status: PaymentStatus
+    payment_method: str
     currency: str
     subtotal: Decimal
     discount_total: Decimal
@@ -63,4 +66,5 @@ class OrderTracking(BaseModel):
     order_number: str
     status: OrderStatus
     payment_status: PaymentStatus
+    payment_method: str
     payment_expires_at: datetime | None
