@@ -17,6 +17,7 @@ from app.models.commerce import (
 )
 from app.models.integrations import AuthIdentity, Shipment, ShipmentEvent
 from app.models.payment import PaymentAttempt
+from app.models.profile import CustomerProfile
 from app.models.shipping import ShippingRate
 
 __all__ = [
@@ -27,6 +28,7 @@ __all__ = [
     "Category",
     "Coupon",
     "Customer",
+    "CustomerProfile",
     "Discount",
     "EmailOutbox",
     "Order",
