@@ -185,6 +185,10 @@ async def quote(payload: CheckoutQuote, session: Session) -> QuoteRead:
 
 @router.post("", response_model=OrderCreated, status_code=status.HTTP_201_CREATED)
 async def create_order(payload: CheckoutCreate, session: Session) -> Order:
+    settings = get_settings()
+    if payload.payment_method == "tap" and not settings.tap_enabled:
+        raise HTTPException(status_code=503, detail="Online payment is not configured")
+
     products, subtotal, discount, promotion, coupon, rate, shipping_total = await calculate_quote(
         payload.items,
         payload.coupon_code,
@@ -234,9 +238,9 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         )
     if coupon is not None and promotion == coupon.code:
         coupon.usage_count += 1
-    settings = get_settings()
+
     payment_expires_at = None
-    if settings.tap_enabled:
+    if payload.payment_method == "tap":
         payment_expires_at = datetime.now(UTC) + timedelta(
             minutes=settings.pending_order_hold_minutes
         )
@@ -250,6 +254,7 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         shipping_governorate=payload.customer.governorate,
         shipping_city=payload.customer.city,
         shipping_address_line=payload.customer.addressLine,
+        payment_method=payload.payment_method,
         subtotal=subtotal,
         discount_total=discount,
         shipping_total=shipping_total,
