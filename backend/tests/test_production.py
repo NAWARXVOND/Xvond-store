@@ -33,6 +33,22 @@ def test_production_rejects_documented_placeholders() -> None:
         )
 
 
+def test_production_rejects_non_oman_database_residency() -> None:
+    with pytest.raises(ValidationError):
+        Settings(
+            app_env="production",
+            database_url="postgresql+asyncpg://store:strong-password@postgres/xvond_store",
+            database_residency_country="AE",
+            admin_api_token="a" * 48,
+            admin_password="strong-admin-password",
+            session_secret="s" * 64,
+            frontend_url="https://xvond.com/store",
+            smtp_host="smtp.zoho.com",
+            smtp_username="support@xvond.com",
+            smtp_password="strong-smtp-password",
+        )
+
+
 def test_order_email_is_durably_queued() -> None:
     session = FakeSession()
     queue_order_event(session, "buyer@example.com", "XV-123", "confirmed")  # type: ignore[arg-type]
