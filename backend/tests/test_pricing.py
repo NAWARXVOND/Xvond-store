@@ -15,13 +15,13 @@ def test_unknown_discount_type_is_safe() -> None:
     assert saving(Decimal("10.000"), "mystery", Decimal(5)) == Decimal("0.000")
 
 
-def test_included_vat_extracts_oman_five_percent_without_raising_total() -> None:
-    assert included_vat(Decimal("10.500")) == Decimal("0.500")
+def test_vat_is_zero_while_store_is_not_registered() -> None:
+    assert included_vat(Decimal("10.500")) == Decimal("0.000")
 
 
-def test_included_vat_rounds_to_omr_precision() -> None:
-    assert included_vat(Decimal("10.000")) == Decimal("0.476")
+def test_explicit_future_vat_rate_can_still_be_calculated() -> None:
+    assert included_vat(Decimal("10.500"), Decimal("0.05")) == Decimal("0.500")
 
 
 def test_included_vat_is_zero_for_non_positive_amount() -> None:
-    assert included_vat(Decimal("0.000")) == Decimal("0.000")
+    assert included_vat(Decimal("0.000"), Decimal("0.05")) == Decimal("0.000")
