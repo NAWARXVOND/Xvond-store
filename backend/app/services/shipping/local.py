@@ -39,11 +39,16 @@ OMAN_GOVERNORATE_ALIASES = {
     "dhahirah": "ad dhahirah",
     "الظاهرة": "ad dhahirah",
 }
+OMAN_GOVERNORATE_KEYS = frozenset(OMAN_GOVERNORATE_ALIASES.values())
 
 
 def normalize_governorate(value: str) -> str:
     normalized = " ".join(value.strip().lower().split())
     return OMAN_GOVERNORATE_ALIASES.get(normalized, normalized)
+
+
+def is_supported_oman_governorate(value: str) -> bool:
+    return normalize_governorate(value) in OMAN_GOVERNORATE_KEYS
 
 
 def calculate_shipping_amount(
