@@ -21,7 +21,7 @@ from app.schemas.orders import (
     QuoteRead,
 )
 from app.services.email import queue_order_event
-from app.services.pricing import saving
+from app.services.pricing import included_vat, saving
 from app.services.shipping.local import normalize_governorate
 
 router = APIRouter(prefix="/orders", tags=["orders"])
@@ -169,11 +169,13 @@ async def quote(payload: CheckoutQuote, session: Session) -> QuoteRead:
         session,
         governorate=payload.governorate,
     )
-    merchandise_total = subtotal - discount
+    merchandise_total = max(subtotal - discount, Decimal("0.000"))
+    tax_total = included_vat(merchandise_total)
     return QuoteRead(
         subtotal=subtotal,
         discount_total=discount,
         shipping_total=shipping_total,
+        tax_total=tax_total,
         grand_total=merchandise_total + shipping_total,
         promotion_code=promotion,
         shipping_available=rate is not None,
@@ -257,6 +259,8 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         payment_expires_at = datetime.now(UTC) + timedelta(
             minutes=settings.pending_order_hold_minutes
         )
+    merchandise_total = max(subtotal - discount, Decimal("0.000"))
+    tax_total = included_vat(merchandise_total)
     order = Order(
         order_number=new_order_number(),
         customer_id=customer.id,
@@ -272,7 +276,8 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         subtotal=subtotal,
         discount_total=discount,
         shipping_total=shipping_total,
-        grand_total=subtotal - discount + shipping_total,
+        tax_total=tax_total,
+        grand_total=merchandise_total + shipping_total,
         promotion_code=promotion,
         payment_expires_at=payment_expires_at,
         items=lines,
