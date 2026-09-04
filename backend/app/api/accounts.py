@@ -127,10 +127,12 @@ async def register(payload: RegisterRequest, response: Response, session: Sessio
     customer = await session.scalar(select(Customer).where(Customer.email == email))
     if customer is not None and customer.password_hash:
         raise HTTPException(status_code=409, detail="An account already exists")
+    default_name = email.split("@", 1)[0]
     if customer is None:
-        customer = Customer(email=email, full_name=payload.full_name)
+        customer = Customer(email=email, full_name=payload.full_name or default_name)
         session.add(customer)
-    customer.full_name = payload.full_name
+    elif payload.full_name:
+        customer.full_name = payload.full_name
     customer.password_hash = hash_password(payload.password)
     await session.commit()
     await session.refresh(customer)
