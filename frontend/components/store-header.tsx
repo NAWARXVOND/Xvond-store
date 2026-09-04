@@ -75,6 +75,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
   const wishlistHref = appendStoreContext(`/${locale}/wishlist`, store);
   const cartHref = appendStoreContext(`/${locale}/cart`, store);
   const initials = profile?.full_name.trim().split(/\s+/).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "";
+  const accountLabel = profile?.full_name || (ar ? "تسجيل الدخول" : "Sign in");
 
   return (
     <header className="site-header marketplace-header">
@@ -97,8 +98,8 @@ export function StoreHeader({ locale }: { locale: Locale }) {
           <Link
             href={accountHref}
             className="header-tool"
-            aria-label={profile ? profile.full_name : (ar ? "حسابي" : "Account")}
-            style={profile ? { width: "auto", minWidth: "38px", borderRadius: "999px", paddingInline: ".35rem .65rem", display: "flex", gap: ".45rem" } : undefined}
+            aria-label={accountLabel}
+            style={{ width: "auto", minWidth: "38px", borderRadius: "999px", paddingInline: ".35rem .65rem", display: "flex", gap: ".45rem" }}
           >
             {profile ? (
               <>
@@ -106,7 +107,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
                 <span style={{ maxWidth: "110px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: ".72rem", fontWeight: 700 }}>{profile.full_name}</span>
               </>
             ) : (
-              <><UserCircleIcon /><span>{ar ? "حسابي" : "Account"}</span></>
+              <><UserCircleIcon /><span>{ar ? "تسجيل الدخول" : "Sign in"}</span></>
             )}
           </Link>
           <Link href={wishlistHref} className="header-tool"><HeartIcon /><span>{t.wishlist}</span></Link>
