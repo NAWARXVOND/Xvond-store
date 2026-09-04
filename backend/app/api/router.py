@@ -18,9 +18,9 @@ from app.api import (
 
 api_router = APIRouter()
 api_router.include_router(accounts.router)
+api_router.include_router(phone_auth.router)
 api_router.include_router(external_auth.router)
 api_router.include_router(facebook_auth.router)
-api_router.include_router(phone_auth.router)
 api_router.include_router(profile.router)
 api_router.include_router(catalog.router)
 api_router.include_router(admin.router)
