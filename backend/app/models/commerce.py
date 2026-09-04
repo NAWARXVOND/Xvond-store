@@ -105,6 +105,13 @@ class Order(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "orders"
     order_number: Mapped[str] = mapped_column(String(32), unique=True, index=True)
     customer_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("customers.id"), index=True)
+    customer_name: Mapped[str | None] = mapped_column(String(180))
+    customer_email: Mapped[str | None] = mapped_column(String(320))
+    customer_phone: Mapped[str | None] = mapped_column(String(32))
+    shipping_country_code: Mapped[str] = mapped_column(String(2), default="OM")
+    shipping_governorate: Mapped[str | None] = mapped_column(String(120))
+    shipping_city: Mapped[str | None] = mapped_column(String(120))
+    shipping_address_line: Mapped[str | None] = mapped_column(String(300))
     status: Mapped[OrderStatus] = mapped_column(
         Enum(OrderStatus), default=OrderStatus.pending, index=True
     )
