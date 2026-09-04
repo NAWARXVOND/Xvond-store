@@ -41,7 +41,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
   }, []);
 
   useEffect(() => {
-    void loadProfile();
+    queueMicrotask(() => void loadProfile());
     const refresh = () => void loadProfile();
     window.addEventListener("xvond-account-changed", refresh);
     return () => window.removeEventListener("xvond-account-changed", refresh);
