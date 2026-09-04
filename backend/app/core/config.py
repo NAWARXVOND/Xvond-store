@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     session_hours: int = Field(default=12, ge=1, le=168)
     pending_order_hold_minutes: int = Field(default=30, ge=5, le=180)
     frontend_url: str = "http://localhost:3000"
-    email_from: str = "Xvond Store <support@xvond.com>"
+    email_from: str = "Xvond Store <no-reply@xvond.com>"
     smtp_host: str | None = None
     smtp_port: int = Field(default=587, ge=1, le=65535)
     smtp_username: str | None = None
@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     apple_key_id: str | None = None
     apple_private_key: str | None = None
     apple_redirect_uri: str | None = None
+    facebook_app_id: str | None = None
+    facebook_app_secret: str | None = None
+    facebook_redirect_uri: str | None = None
+    facebook_graph_version: str = "v24.0"
     twilio_account_sid: str | None = None
     twilio_auth_token: str | None = None
     twilio_verify_service_sid: str | None = None
@@ -65,6 +69,10 @@ class Settings(BaseSettings):
             and self.apple_private_key
             and self.apple_redirect_uri
         )
+
+    @property
+    def facebook_auth_enabled(self) -> bool:
+        return bool(self.facebook_app_id and self.facebook_app_secret and self.facebook_redirect_uri)
 
     @property
     def phone_auth_enabled(self) -> bool:
