@@ -26,6 +26,10 @@ router = APIRouter(prefix="/auth", tags=["authentication"])
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 
+class IdentifyRequest(BaseModel):
+    identifier: str = Field(min_length=3, max_length=320)
+
+
 class PhoneStartRequest(BaseModel):
     phone: str = Field(min_length=8, max_length=20)
     locale: Literal["ar", "en"] = "ar"
@@ -138,6 +142,41 @@ async def customer_for_identity(
 
 def account_redirect(locale: str, settings: Settings) -> str:
     return f"{settings.frontend_url.rstrip('/')}/{locale}/account"
+
+
+@router.post("/identify")
+async def identify(payload: IdentifyRequest, session: Session) -> dict[str, object]:
+    value = payload.identifier.strip()
+    settings = get_settings()
+    if "@" in value:
+        try:
+            email = str(EmailStr._validate(value)).lower()
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail="Use a valid email address") from exc
+        customer = await session.scalar(select(Customer).where(Customer.email == email))
+        existing_password = bool(customer and customer.is_active and customer.password_hash)
+        return {
+            "kind": "email",
+            "identifier": email,
+            "existing": existing_password,
+            "next_action": "password" if existing_password else "register",
+        }
+
+    phone = normalize_oman_phone(value)
+    if not settings.phone_auth_enabled:
+        return {
+            "kind": "phone",
+            "identifier": phone,
+            "existing": False,
+            "next_action": "phone_unavailable",
+        }
+    customer = await session.scalar(select(Customer).where(Customer.phone == phone))
+    return {
+        "kind": "phone",
+        "identifier": phone,
+        "existing": bool(customer and customer.is_active),
+        "next_action": "phone_otp",
+    }
 
 
 @router.get("/providers")
@@ -353,10 +392,10 @@ async def phone_verify(
     existing = await session.scalar(
         select(Customer).where(or_(Customer.phone == phone, Customer.email == payload.email))
     )
-    if existing is None and (payload.email is None or payload.full_name is None):
+    if existing is None and payload.email is None:
         raise HTTPException(
             status_code=409,
-            detail="email_and_name_required_for_first_phone_signup",
+            detail="email_required_for_first_phone_signup",
         )
     email = str(payload.email).lower() if payload.email else (existing.email if existing else None)
     customer = await customer_for_identity(
