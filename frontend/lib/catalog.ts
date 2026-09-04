@@ -84,8 +84,16 @@ function toCategory(category: ApiCategory): Category {
   };
 }
 
+export function validPreviousPrice(price: number, compareAtPrice?: string | number | null): number | undefined {
+  if (compareAtPrice == null) return undefined;
+  const previousPrice = Number(compareAtPrice);
+  if (!Number.isFinite(previousPrice) || previousPrice <= price) return undefined;
+  return previousPrice;
+}
+
 function toProduct(product: ApiProduct): Product {
   const variant = product.variants[0];
+  const price = Number(variant?.price ?? 0);
   return {
     id: product.id,
     slug: product.slug,
@@ -96,8 +104,8 @@ function toProduct(product: ApiProduct): Product {
       ar: product.description_ar ?? undefined,
       en: product.description_en ?? undefined,
     },
-    price: Number(variant?.price ?? 0),
-    previousPrice: variant?.compare_at_price == null ? undefined : Number(variant.compare_at_price),
+    price,
+    previousPrice: validPreviousPrice(price, variant?.compare_at_price),
     image: product.primary_image_url || FALLBACK_IMAGE,
     variantId: variant?.id,
     stock: product.variants.reduce((total, item) => total + item.stock_quantity, 0),
