@@ -15,6 +15,7 @@ def test_order_admin_read_accepts_fulfillment_snapshot() -> None:
             "shipping_address_line": "Building 1, Street 2",
             "status": "pending",
             "payment_status": "pending",
+            "payment_method": "manual",
             "currency": "OMR",
             "subtotal": "10.000",
             "discount_total": "0.000",
@@ -27,4 +28,5 @@ def test_order_admin_read_accepts_fulfillment_snapshot() -> None:
     )
     assert order.customer_name == "Test Customer"
     assert order.shipping_governorate == "Muscat"
+    assert order.payment_method == "manual"
     assert str(order.grand_total) == "11.000"
