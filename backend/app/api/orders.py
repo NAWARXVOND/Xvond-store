@@ -243,6 +243,13 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
     order = Order(
         order_number=new_order_number(),
         customer_id=customer.id,
+        customer_name=payload.customer.fullName,
+        customer_email=str(payload.customer.email),
+        customer_phone=payload.customer.phone,
+        shipping_country_code="OM",
+        shipping_governorate=payload.customer.governorate,
+        shipping_city=payload.customer.city,
+        shipping_address_line=payload.customer.addressLine,
         subtotal=subtotal,
         discount_total=discount,
         shipping_total=shipping_total,
