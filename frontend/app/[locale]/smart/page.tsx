@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon, ArrowRightIcon, BoltIcon, GiftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ArrowRightIcon, BoltIcon } from "@heroicons/react/24/outline";
 import { getCategories } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
 import { SMART_CATEGORY_SLUGS, storeNewArrivalsPath } from "@/lib/store-context";
 import { absoluteUrl } from "@/lib/urls";
 import styles from "../store-channel.module.css";
 
-const icons = { electronics: BoltIcon, "xvond-box": GiftIcon } as const;
+const icons = { electronics: BoltIcon } as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const ar = locale === "ar";
-  return { title: "Xvond Smart Store | Xvond Store", description: ar ? "تسوّق Xvond Smart للمنتجات التقنية وXvond Box." : "Shop Xvond Smart for technology products and Xvond Box.", alternates: { canonical: absoluteUrl(`/${locale}/smart`) } };
+  return { title: "Xvond Smart Store | Xvond Store", description: ar ? "تسوّق Xvond Smart للمنتجات التقنية الذكية." : "Shop Xvond Smart for smart technology products.", alternates: { canonical: absoluteUrl(`/${locale}/smart`) } };
 }
 
 export default async function SmartPage({ params }: { params: Promise<{ locale: string }> }) {
