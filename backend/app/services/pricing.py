@@ -20,5 +20,5 @@ def included_vat(amount_including_vat: Decimal, rate: Decimal = OMAN_VAT_RATE) -
     """Return the VAT component already included in a VAT-inclusive amount."""
     if amount_including_vat <= 0 or rate <= 0:
         return Decimal("0.000")
-    tax = amount_including_vat * rate / (Decimal("1") + rate)
+    tax = amount_including_vat * rate / (Decimal(1) + rate)
     return tax.quantize(OMR_QUANTUM)
