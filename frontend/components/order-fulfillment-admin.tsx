@@ -18,6 +18,7 @@ type Order = {
   shipping_address_line: string | null;
   status: string;
   payment_status: string;
+  payment_method: string;
   currency: string;
   subtotal: string;
   discount_total: string;
@@ -82,6 +83,7 @@ export function OrderFulfillmentAdmin({ locale }: { locale: Locale }) {
         <div style={{ display: "grid", gap: ".35rem" }}>
           <strong>{order.grand_total} {order.currency}</strong>
           <small>{ar ? "الشحن" : "Shipping"}: {order.shipping_total} {order.currency}{order.discount_total !== "0.000" ? ` · ${ar ? "خصم" : "Discount"}: ${order.discount_total}` : ""}</small>
+          <small>{ar ? "طريقة الدفع" : "Payment method"}: {order.payment_method === "cash_on_delivery" ? (ar ? "الدفع عند الاستلام" : "Cash on delivery") : order.payment_method === "tap" ? "Tap" : order.payment_method}</small>
           <select value={order.status} disabled={busyId === order.id} onChange={(event) => void update(order.id, { status: event.target.value })}>
             {orderStates.map((state) => <option key={state} value={state}>{state}</option>)}
           </select>
