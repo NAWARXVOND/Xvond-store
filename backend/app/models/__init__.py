@@ -15,12 +15,14 @@ from app.models.commerce import (
     StoreSetting,
     WishlistItem,
 )
+from app.models.integrations import AuthIdentity, Shipment, ShipmentEvent
 from app.models.payment import PaymentAttempt
 from app.models.shipping import ShippingRate
 
 __all__ = [
     "AccountToken",
     "Address",
+    "AuthIdentity",
     "Base",
     "Category",
     "Coupon",
@@ -33,6 +35,8 @@ __all__ = [
     "Product",
     "ProductVariant",
     "ReturnRequest",
+    "Shipment",
+    "ShipmentEvent",
     "ShippingRate",
     "StoreSetting",
     "WishlistItem",
