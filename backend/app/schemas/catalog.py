@@ -38,6 +38,7 @@ class ProductRead(BaseModel):
     category_id: uuid.UUID
     category: CategoryRead
     variants: list[VariantRead]
+    is_active: bool
 
 
 class ProductCreate(BaseModel):
