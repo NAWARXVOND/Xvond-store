@@ -13,6 +13,7 @@ const labels: Record<string, { ar: string; en: string }> = {
   catalog: { ar: "المنتجات والمخزون", en: "Catalog & inventory" },
   market: { ar: "سوق الإطلاق", en: "Launch market" },
   shipping: { ar: "مناطق التوصيل", en: "Delivery areas" },
+  data_residency: { ar: "موقع قاعدة البيانات", en: "Database residency" },
   email: { ar: "البريد الإلكتروني", en: "Email delivery" },
   payment: { ar: "طرق الدفع", en: "Payment methods" },
   production: { ar: "بيئة الإنتاج وHTTPS", en: "Production & HTTPS" },
