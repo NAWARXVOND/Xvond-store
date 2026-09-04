@@ -1,4 +1,5 @@
-from app.api.phone_auth import phone_confirm, router as phone_router
+from app.api.phone_auth import phone_confirm
+from app.api.phone_auth import router as phone_router
 from app.models.commerce import Customer
 from app.schemas.auth import ProfileRead
 
