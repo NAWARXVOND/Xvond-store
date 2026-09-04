@@ -63,6 +63,8 @@ async def create_tap_payment(
     )
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
+    if order.payment_method != "tap":
+        raise HTTPException(status_code=409, detail="Order is not configured for online payment")
     if order.payment_status == PaymentStatus.paid:
         raise HTTPException(status_code=409, detail="Order is already paid")
     if order.status != OrderStatus.pending or not payment_window_open(order):
