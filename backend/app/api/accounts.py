@@ -81,11 +81,14 @@ def profile(customer: Customer) -> ProfileRead:
         id=str(customer.id),
         full_name=customer.full_name,
         email=customer.email,
+        phone=customer.phone,
         email_verified=customer.email_verified,
     )
 
 
 async def issue_token(customer: Customer, purpose: str, session: AsyncSession) -> str:
+    if not customer.email:
+        raise HTTPException(status_code=422, detail="This account does not have an email address")
     raw = secrets.token_urlsafe(32)
     session.add(
         AccountToken(
@@ -127,12 +130,11 @@ async def register(payload: RegisterRequest, response: Response, session: Sessio
     customer = await session.scalar(select(Customer).where(Customer.email == email))
     if customer is not None and customer.password_hash:
         raise HTTPException(status_code=409, detail="An account already exists")
-    default_name = email.split("@", 1)[0]
     if customer is None:
-        customer = Customer(email=email, full_name=payload.full_name or default_name)
+        customer = Customer(email=email, full_name=payload.full_name or "Xvond Member")
         session.add(customer)
-    elif payload.full_name:
-        customer.full_name = payload.full_name
+    else:
+        customer.full_name = payload.full_name or customer.full_name
     customer.password_hash = hash_password(payload.password)
     await session.commit()
     await session.refresh(customer)
@@ -176,6 +178,8 @@ async def verify_email(payload: TokenRequest, session: Session) -> dict[str, str
 
 @router.post("/auth/email/resend", status_code=202)
 async def resend_verification(customer: CurrentCustomer, session: Session) -> dict[str, str]:
+    if not customer.email:
+        raise HTTPException(status_code=422, detail="This account does not have an email address")
     if not customer.email_verified:
         await issue_token(customer, "verify-email", session)
     return {"status": "accepted"}
