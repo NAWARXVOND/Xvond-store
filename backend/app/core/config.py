@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     api_prefix: str = "/api/v1"
     database_url: str = "postgresql+asyncpg://xvond_store:xvond_store@localhost:5432/xvond_store"
+    database_residency_country: str = "OM"
     admin_api_token: str = Field(default="development-only-token-change-me", min_length=24)
     admin_email: str = "admin@xvond.com"
     admin_password: str = Field(default="development-admin-password", min_length=12)
@@ -62,6 +63,8 @@ class Settings(BaseSettings):
         invalid = [name for name, failed in insecure.items() if failed]
         if invalid:
             raise ValueError(f"Production configuration is unsafe: {', '.join(invalid)}")
+        if self.database_residency_country.strip().upper() != "OM":
+            raise ValueError("Production database residency must be Oman (OM) for the current launch")
         if not all((self.smtp_host, self.smtp_username, self.smtp_password)):
             raise ValueError("Production SMTP configuration is required")
         if not self.frontend_url.startswith("https://"):

@@ -11,6 +11,7 @@ class CheckoutCustomer(BaseModel):
     fullName: str = Field(min_length=2, max_length=180)
     email: EmailStr
     phone: str = Field(min_length=8, max_length=20)
+    countryCode: Literal["OM"] = "OM"
     governorate: str = Field(min_length=2, max_length=120)
     city: str = Field(min_length=2, max_length=120)
     addressLine: str = Field(min_length=5, max_length=300)

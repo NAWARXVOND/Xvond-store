@@ -33,12 +33,15 @@ async def launch_readiness(session: Session) -> dict[str, object]:
     smtp_ready = bool(
         settings.smtp_host and settings.smtp_username and settings.smtp_password
     )
-    payment_ready = bool(
+    tap_ready = bool(
         settings.tap_enabled
         and settings.tap_secret_key
         and settings.tap_merchant_id
         and settings.tap_webhook_url
     )
+    # Cash on delivery is a production payment method, so Tap is optional at launch.
+    payment_ready = True
+    residency_ready = settings.database_residency_country.strip().upper() == "OM"
     production_ready = settings.app_env == "production" and settings.frontend_url.startswith(
         "https://"
     )
@@ -53,9 +56,23 @@ async def launch_readiness(session: Session) -> dict[str, object]:
             ),
         },
         {
+            "key": "market",
+            "ready": True,
+            "detail": "Oman only · OMR · free delivery",
+        },
+        {
             "key": "shipping",
             "ready": bool(shipping_rates),
-            "detail": f"{shipping_rates or 0} active delivery areas",
+            "detail": f"{shipping_rates or 0} active Oman delivery areas · free delivery",
+        },
+        {
+            "key": "data_residency",
+            "ready": residency_ready,
+            "detail": (
+                "Primary database declared in Oman"
+                if residency_ready
+                else f"DATABASE_RESIDENCY_COUNTRY={settings.database_residency_country}"
+            ),
         },
         {
             "key": "email",
@@ -65,7 +82,7 @@ async def launch_readiness(session: Session) -> dict[str, object]:
         {
             "key": "payment",
             "ready": payment_ready,
-            "detail": "Tap enabled" if settings.tap_enabled else "Tap disabled",
+            "detail": "Cash on delivery enabled · Tap enabled" if tap_ready else "Cash on delivery enabled · Tap optional/not ready",
         },
         {
             "key": "production",
