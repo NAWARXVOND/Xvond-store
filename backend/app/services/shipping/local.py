@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-
 OMAN_GOVERNORATE_ALIASES = {
     "muscat": "muscat",
     "مسقط": "muscat",
