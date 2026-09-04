@@ -9,6 +9,9 @@ from app.services.shipping.local import calculate_shipping_amount, normalize_gov
 
 def test_governorate_is_normalized() -> None:
     assert normalize_governorate("  Muscat   ") == "muscat"
+    assert normalize_governorate("مسقط") == "muscat"
+    assert normalize_governorate("شمال الباطنة") == "north al batinah"
+    assert normalize_governorate("Al Dakhiliyah") == "ad dakhiliyah"
 
 
 def test_shipping_rate_applies_below_free_threshold() -> None:
