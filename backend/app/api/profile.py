@@ -5,7 +5,7 @@ from typing import Annotated
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.accounts import CurrentCustomer
