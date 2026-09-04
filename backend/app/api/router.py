@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api import (
     accounts,
     admin,
+    admin_order_details,
     catalog,
     courier,
     external_auth,
@@ -23,6 +24,7 @@ api_router.include_router(phone_auth.router)
 api_router.include_router(profile.router)
 api_router.include_router(catalog.router)
 api_router.include_router(admin.router)
+api_router.include_router(admin_order_details.router)
 api_router.include_router(shipping_admin.router)
 api_router.include_router(readiness_admin.router)
 api_router.include_router(orders.router)
