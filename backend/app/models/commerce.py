@@ -82,7 +82,7 @@ class ProductVariant(UUIDMixin, TimestampMixin, Base):
 
 class Customer(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "customers"
-    email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    email: Mapped[str | None] = mapped_column(String(320), unique=True, index=True)
     phone: Mapped[str | None] = mapped_column(String(32), unique=True)
     full_name: Mapped[str] = mapped_column(String(180))
     password_hash: Mapped[str | None] = mapped_column(String(300))
