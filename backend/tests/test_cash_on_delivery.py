@@ -1,8 +1,7 @@
-from pydantic import ValidationError
 import pytest
+from pydantic import ValidationError
 
 from app.schemas.orders import CheckoutCreate
-
 
 BASE_PAYLOAD = {
     "customer": {
