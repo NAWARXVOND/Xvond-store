@@ -29,6 +29,17 @@ type Order = {
   created_at: string;
 };
 
+type OrderItem = {
+  id: string;
+  product_name: string;
+  sku: string;
+  unit_price: string;
+  quantity: number;
+  line_total: string;
+};
+
+type OrderDetail = Order & { items: OrderItem[] };
+
 const orderStates = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "returned"];
 const paymentStates = ["pending", "authorized", "paid", "failed", "refunded"];
 
@@ -37,6 +48,8 @@ export function OrderFulfillmentAdmin({ locale }: { locale: Locale }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [details, setDetails] = useState<Record<string, OrderDetail>>({});
   const [message, setMessage] = useState("");
 
   const load = useCallback(async () => {
@@ -60,7 +73,31 @@ export function OrderFulfillmentAdmin({ locale }: { locale: Locale }) {
     });
     setBusyId(null);
     if (!response.ok) { setMessage(ar ? "تعذر تحديث الطلب." : "Could not update order."); return; }
+    setDetails((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
     await load();
+  }
+
+  async function toggleDetails(order: Order) {
+    if (expandedId === order.id) { setExpandedId(null); return; }
+    setExpandedId(order.id);
+    if (details[order.id]) return;
+    setBusyId(order.id); setMessage("");
+    const response = await fetch(`${apiUrl}/admin/orders/${order.id}/detail`, {
+      credentials: "include",
+      cache: "no-store",
+    });
+    setBusyId(null);
+    if (!response.ok) {
+      setExpandedId(null);
+      setMessage(ar ? "تعذر تحميل تفاصيل الطلب." : "Could not load order details.");
+      return;
+    }
+    const detail = await response.json() as OrderDetail;
+    setDetails((current) => ({ ...current, [order.id]: detail }));
   }
 
   if (authorized === null) return <main className="content-page shell"><p>{ar ? "جارٍ التحميل…" : "Loading…"}</p></main>;
@@ -72,26 +109,44 @@ export function OrderFulfillmentAdmin({ locale }: { locale: Locale }) {
     <p><Link href={`/${locale}/admin`}>← {ar ? "العودة للوحة الإدارة" : "Back to admin"}</Link></p>
     {message && <p className="admin-message">{message}</p>}
     <div className="admin-cards">
-      {orders.length ? orders.map((order) => <article key={order.id} style={{ alignItems: "stretch", gap: "1rem" }}>
-        <div style={{ display: "grid", gap: ".35rem" }}>
-          <strong>{order.order_number}</strong>
-          <small>{new Date(order.created_at).toLocaleString(ar ? "ar-OM" : "en-OM")}</small>
-          <span>{order.customer_name || "—"}</span>
-          <small>{order.customer_email || "—"}{order.customer_phone ? ` · ${order.customer_phone}` : ""}</small>
-          <small>{[order.shipping_governorate, order.shipping_city, order.shipping_address_line].filter(Boolean).join(" · ") || (ar ? "طلب قديم بدون لقطة عنوان" : "Legacy order without address snapshot")}</small>
-        </div>
-        <div style={{ display: "grid", gap: ".35rem" }}>
-          <strong>{order.grand_total} {order.currency}</strong>
-          <small>{ar ? "الشحن" : "Shipping"}: {order.shipping_total} {order.currency}{order.discount_total !== "0.000" ? ` · ${ar ? "خصم" : "Discount"}: ${order.discount_total}` : ""}</small>
-          <small>{ar ? "طريقة الدفع" : "Payment method"}: {order.payment_method === "cash_on_delivery" ? (ar ? "الدفع عند الاستلام" : "Cash on delivery") : order.payment_method === "tap" ? "Tap" : order.payment_method}</small>
-          <select value={order.status} disabled={busyId === order.id} onChange={(event) => void update(order.id, { status: event.target.value })}>
-            {orderStates.map((state) => <option key={state} value={state}>{state}</option>)}
-          </select>
-          <select value={order.payment_status} disabled={busyId === order.id} onChange={(event) => void update(order.id, { payment_status: event.target.value })}>
-            {paymentStates.map((state) => <option key={state} value={state}>{state}</option>)}
-          </select>
-        </div>
-      </article>) : <article><p>{ar ? "لا توجد طلبات بعد." : "No orders yet."}</p></article>}
+      {orders.length ? orders.map((order) => {
+        const detail = details[order.id];
+        const expanded = expandedId === order.id;
+        return <article key={order.id} style={{ alignItems: "stretch", gap: "1rem" }}>
+          <div style={{ display: "grid", gap: ".35rem" }}>
+            <strong>{order.order_number}</strong>
+            <small>{new Date(order.created_at).toLocaleString(ar ? "ar-OM" : "en-OM")}</small>
+            <span>{order.customer_name || "—"}</span>
+            <small>{order.customer_email || "—"}{order.customer_phone ? ` · ${order.customer_phone}` : ""}</small>
+            <small>{[order.shipping_governorate, order.shipping_city, order.shipping_address_line].filter(Boolean).join(" · ") || (ar ? "طلب قديم بدون لقطة عنوان" : "Legacy order without address snapshot")}</small>
+          </div>
+          <div style={{ display: "grid", gap: ".35rem" }}>
+            <strong>{order.grand_total} {order.currency}</strong>
+            <small>{ar ? "الشحن" : "Shipping"}: {order.shipping_total} {order.currency}{order.discount_total !== "0.000" ? ` · ${ar ? "خصم" : "Discount"}: ${order.discount_total}` : ""}</small>
+            <small>{ar ? "طريقة الدفع" : "Payment method"}: {order.payment_method === "cash_on_delivery" ? (ar ? "الدفع عند الاستلام" : "Cash on delivery") : order.payment_method === "tap" ? "Tap" : order.payment_method}</small>
+            <select value={order.status} disabled={busyId === order.id} onChange={(event) => void update(order.id, { status: event.target.value })}>
+              {orderStates.map((state) => <option key={state} value={state}>{state}</option>)}
+            </select>
+            <select value={order.payment_status} disabled={busyId === order.id} onChange={(event) => void update(order.id, { payment_status: event.target.value })}>
+              {paymentStates.map((state) => <option key={state} value={state}>{state}</option>)}
+            </select>
+            <button className="table-button" type="button" disabled={busyId === order.id} onClick={() => void toggleDetails(order)}>{expanded ? (ar ? "إخفاء التفاصيل" : "Hide details") : (ar ? "تفاصيل الطلب" : "Order details")}</button>
+          </div>
+          {expanded && detail && <div style={{ gridColumn: "1 / -1", display: "grid", gap: ".75rem", borderTop: "1px solid var(--line, #d9d9d9)", paddingTop: "1rem" }}>
+            <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+              <small>{ar ? "المجموع الفرعي" : "Subtotal"}: {detail.subtotal} {detail.currency}</small>
+              {detail.discount_total !== "0.000" && <small>{ar ? "الخصم" : "Discount"}: {detail.discount_total} {detail.currency}</small>}
+              {detail.promotion_code && <small>{ar ? "العرض" : "Promotion"}: {detail.promotion_code}</small>}
+            </div>
+            <div style={{ display: "grid", gap: ".5rem" }}>
+              {detail.items.map((item) => <div key={item.id} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: ".5rem 1rem" }}>
+                <div><strong>{item.product_name}</strong><small style={{ display: "block" }}>{item.sku} · {ar ? "الكمية" : "Qty"}: {item.quantity}</small></div>
+                <div style={{ textAlign: "end" }}><strong>{item.line_total} {detail.currency}</strong><small style={{ display: "block" }}>{item.unit_price} × {item.quantity}</small></div>
+              </div>)}
+            </div>
+          </div>}
+        </article>;
+      }) : <article><p>{ar ? "لا توجد طلبات بعد." : "No orders yet."}</p></article>}
     </div>
   </main>;
 }
