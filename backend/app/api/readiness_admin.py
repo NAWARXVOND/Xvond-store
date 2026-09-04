@@ -16,6 +16,7 @@ router = APIRouter(
     dependencies=[Depends(require_admin)],
 )
 Session = Annotated[AsyncSession, Depends(get_session)]
+EXPECTED_OMAN_GOVERNORATES = 11
 
 
 @router.get("")
@@ -30,6 +31,11 @@ async def launch_readiness(session: Session) -> dict[str, object]:
     shipping_rates = await session.scalar(
         select(func.count(ShippingRate.id)).where(ShippingRate.is_active.is_(True))
     )
+    paid_shipping_rates = await session.scalar(
+        select(func.count(ShippingRate.id)).where(
+            ShippingRate.is_active.is_(True), ShippingRate.amount != 0
+        )
+    )
     smtp_ready = bool(
         settings.smtp_host and settings.smtp_username and settings.smtp_password
     )
@@ -42,6 +48,10 @@ async def launch_readiness(session: Session) -> dict[str, object]:
     # Cash on delivery is a production payment method, so Tap is optional at launch.
     payment_ready = True
     residency_ready = settings.database_residency_country.strip().upper() == "OM"
+    shipping_ready = (
+        (shipping_rates or 0) >= EXPECTED_OMAN_GOVERNORATES
+        and (paid_shipping_rates or 0) == 0
+    )
     production_ready = settings.app_env == "production" and settings.frontend_url.startswith(
         "https://"
     )
@@ -62,8 +72,11 @@ async def launch_readiness(session: Session) -> dict[str, object]:
         },
         {
             "key": "shipping",
-            "ready": bool(shipping_rates),
-            "detail": f"{shipping_rates or 0} active Oman delivery areas · free delivery",
+            "ready": shipping_ready,
+            "detail": (
+                f"{shipping_rates or 0}/{EXPECTED_OMAN_GOVERNORATES} active Oman governorates · "
+                f"{paid_shipping_rates or 0} with non-zero delivery fee"
+            ),
         },
         {
             "key": "data_residency",
