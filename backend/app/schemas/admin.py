@@ -136,6 +136,7 @@ class OrderAdminRead(BaseModel):
     shipping_address_line: str | None = None
     status: OrderStatus
     payment_status: PaymentStatus
+    payment_method: str
     currency: str
     subtotal: Decimal
     discount_total: Decimal
