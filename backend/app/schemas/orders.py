@@ -2,9 +2,10 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 from app.models.commerce import OrderStatus, PaymentStatus
+from app.services.shipping.local import OMAN_GOVERNORATE_KEYS, normalize_governorate
 
 
 class CheckoutCustomer(BaseModel):
@@ -15,6 +16,14 @@ class CheckoutCustomer(BaseModel):
     governorate: str = Field(min_length=2, max_length=120)
     city: str = Field(min_length=2, max_length=120)
     addressLine: str = Field(min_length=5, max_length=300)
+
+    @field_validator("governorate")
+    @classmethod
+    def validate_oman_governorate(cls, value: str) -> str:
+        normalized = normalize_governorate(value)
+        if normalized not in OMAN_GOVERNORATE_KEYS:
+            raise ValueError("Governorate must be one of the supported Oman governorates")
+        return normalized
 
 
 class CheckoutItem(BaseModel):
@@ -33,6 +42,16 @@ class CheckoutQuote(BaseModel):
     items: list[CheckoutItem] = Field(min_length=1, max_length=100)
     coupon_code: str | None = Field(default=None, min_length=2, max_length=60)
     governorate: str | None = Field(default=None, min_length=2, max_length=120)
+
+    @field_validator("governorate")
+    @classmethod
+    def validate_oman_governorate(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = normalize_governorate(value)
+        if normalized not in OMAN_GOVERNORATE_KEYS:
+            raise ValueError("Governorate must be one of the supported Oman governorates")
+        return normalized
 
 
 class QuoteRead(BaseModel):
