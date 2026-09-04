@@ -157,7 +157,6 @@ async def calculate_quote(
                 ShippingRate.is_active.is_(True),
             )
         )
-        # Oman launch policy: delivery is free anywhere an active Oman delivery rate exists.
         shipping_total = Decimal("0.000")
     return products, subtotal, discount, promotion, coupon, rate, shipping_total
 
@@ -199,17 +198,30 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
     if rate is None:
         raise HTTPException(status_code=422, detail="Delivery is not available for this governorate")
 
-    customer = await session.scalar(
-        select(Customer).where(Customer.email == payload.customer.email)
-    )
+    email = str(payload.customer.email).lower()
+    phone = payload.customer.phone
+    email_customer = await session.scalar(select(Customer).where(Customer.email == email))
+    phone_customer = await session.scalar(select(Customer).where(Customer.phone == phone))
+    if email_customer and phone_customer and email_customer.id != phone_customer.id:
+        raise HTTPException(
+            status_code=409,
+            detail="Email and phone belong to different customer accounts",
+        )
+    customer = email_customer or phone_customer
     if customer is None:
         customer = Customer(
-            email=payload.customer.email,
-            phone=payload.customer.phone,
+            email=email,
+            phone=phone,
             full_name=payload.customer.fullName,
         )
         session.add(customer)
         await session.flush()
+    else:
+        if customer.email is None:
+            customer.email = email
+        if customer.phone is None:
+            customer.phone = phone
+        customer.full_name = payload.customer.fullName
 
     session.add(
         Address(
@@ -249,8 +261,8 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         order_number=new_order_number(),
         customer_id=customer.id,
         customer_name=payload.customer.fullName,
-        customer_email=str(payload.customer.email),
-        customer_phone=payload.customer.phone,
+        customer_email=email,
+        customer_phone=phone,
         shipping_country_code=payload.customer.countryCode,
         shipping_governorate=payload.customer.governorate,
         shipping_city=payload.customer.city,
@@ -266,7 +278,7 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         items=lines,
     )
     session.add(order)
-    queue_order_event(session, customer.email, order.order_number, "pending")
+    queue_order_event(session, email, order.order_number, "pending")
     await session.commit()
     await session.refresh(order)
     return order
