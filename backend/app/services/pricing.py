@@ -1,6 +1,8 @@
 from decimal import Decimal
 
-OMAN_VAT_RATE = Decimal("0.05")
+# Madlin For Investment is not currently VAT-registered. Store prices are final
+# customer prices and no VAT is charged or represented until registration is enabled.
+STORE_VAT_RATE = Decimal("0.00")
 OMR_QUANTUM = Decimal("0.001")
 
 
@@ -16,8 +18,8 @@ def saving(amount: Decimal, discount_type: str, value: Decimal) -> Decimal:
     return result.quantize(OMR_QUANTUM)
 
 
-def included_vat(amount_including_vat: Decimal, rate: Decimal = OMAN_VAT_RATE) -> Decimal:
-    """Return the VAT component already included in a VAT-inclusive amount."""
+def included_vat(amount_including_vat: Decimal, rate: Decimal = STORE_VAT_RATE) -> Decimal:
+    """Return an included VAT component when VAT collection is explicitly enabled."""
     if amount_including_vat <= 0 or rate <= 0:
         return Decimal("0.000")
     tax = amount_including_vat * rate / (Decimal(1) + rate)
