@@ -59,7 +59,10 @@ class QuoteRead(BaseModel):
     subtotal: Decimal
     discount_total: Decimal
     shipping_total: Decimal
+    tax_total: Decimal
     grand_total: Decimal
+    prices_include_vat: bool = True
+    vat_rate_percent: Decimal = Decimal("5.000")
     promotion_code: str | None = None
     shipping_available: bool = False
     estimated_days_min: int | None = None
@@ -76,7 +79,10 @@ class OrderCreated(BaseModel):
     subtotal: Decimal
     discount_total: Decimal
     shipping_total: Decimal
+    tax_total: Decimal
     grand_total: Decimal
+    prices_include_vat: bool = True
+    vat_rate_percent: Decimal = Decimal("5.000")
     promotion_code: str | None
     payment_expires_at: datetime | None
 
