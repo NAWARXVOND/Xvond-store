@@ -7,6 +7,7 @@ from app.schemas.admin import (
     CouponWrite,
     DiscountUpdate,
     DiscountWrite,
+    VariantCreate,
     VariantUpdate,
 )
 
@@ -30,6 +31,33 @@ def test_variant_update_accepts_live_commerce_values() -> None:
     update = VariantUpdate(price="12.500", compare_at_price="15.000", stock_quantity=8)
     assert str(update.price) == "12.500"
     assert update.stock_quantity == 8
+
+
+def test_variant_create_rejects_compare_price_not_above_sale_price() -> None:
+    with pytest.raises(ValidationError):
+        VariantCreate(
+            sku="SKU-1",
+            title_ar="أساسي",
+            title_en="Default",
+            price="15.000",
+            compare_at_price="12.000",
+            stock_quantity=1,
+        )
+
+
+def test_variant_update_rejects_compare_price_not_above_sale_price() -> None:
+    with pytest.raises(ValidationError):
+        VariantUpdate(price="15.000", compare_at_price="15.000")
+
+
+def test_variant_update_requires_price_when_setting_compare_price() -> None:
+    with pytest.raises(ValidationError):
+        VariantUpdate(compare_at_price="15.000")
+
+
+def test_variant_update_allows_clearing_compare_price_without_price() -> None:
+    update = VariantUpdate(compare_at_price=None)
+    assert update.compare_at_price is None
 
 
 def test_variant_update_rejects_negative_stock() -> None:
