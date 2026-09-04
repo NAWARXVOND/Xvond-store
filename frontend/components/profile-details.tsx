@@ -38,7 +38,7 @@ export function ProfileDetailsCard({ locale }: { locale: Locale }) {
   }, []);
 
   useEffect(() => {
-    void load();
+    queueMicrotask(() => void load());
     const handler = () => void load();
     window.addEventListener("xvond-account-changed", handler);
     return () => window.removeEventListener("xvond-account-changed", handler);
