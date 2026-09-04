@@ -97,11 +97,20 @@ class OrderAdminRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     order_number: str
+    customer_name: str | None = None
+    customer_email: str | None = None
+    customer_phone: str | None = None
+    shipping_country_code: str = "OM"
+    shipping_governorate: str | None = None
+    shipping_city: str | None = None
+    shipping_address_line: str | None = None
     status: OrderStatus
     payment_status: PaymentStatus
     currency: str
     subtotal: Decimal
     discount_total: Decimal
+    shipping_total: Decimal
+    tax_total: Decimal
     grand_total: Decimal
     promotion_code: str | None
     created_at: datetime
