@@ -8,13 +8,13 @@ import { LIFESTYLE_CATEGORY_SLUGS, storeNewArrivalsPath } from "@/lib/store-cont
 import { absoluteUrl } from "@/lib/urls";
 import styles from "../store-channel.module.css";
 
-const icons = { women: ShoppingBagIcon, kids: SparklesIcon, "luxury-gifts": GiftIcon, automotive: WrenchScrewdriverIcon } as const;
+const icons = { women: ShoppingBagIcon, kids: SparklesIcon, "luxury-gifts": GiftIcon, automotive: WrenchScrewdriverIcon, "xvond-box": GiftIcon } as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const ar = locale === "ar";
-  return { title: "Xvond Lifestyle Store | Xvond Store", description: ar ? "تسوّق Xvond Lifestyle: نساء، أطفال، هدايا ومستلزمات السيارة." : "Shop Xvond Lifestyle across women, kids, gifts and automotive.", alternates: { canonical: absoluteUrl(`/${locale}/lifestyle`) } };
+  return { title: "Xvond Lifestyle Store | Xvond Store", description: ar ? "تسوّق Xvond Lifestyle: نساء، أطفال، هدايا، مستلزمات السيارة وXvond Box." : "Shop Xvond Lifestyle across women, kids, gifts, automotive and Xvond Box.", alternates: { canonical: absoluteUrl(`/${locale}/lifestyle`) } };
 }
 
 export default async function LifestylePage({ params }: { params: Promise<{ locale: string }> }) {
