@@ -19,6 +19,7 @@ class ProfileDetailsUpdate(BaseModel):
 
 class ProfileEmailStart(BaseModel):
     email: EmailStr
+    locale: str = Field(default="ar", pattern="^(ar|en)$")
 
 
 class ProfilePhoneStart(BaseModel):
