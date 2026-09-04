@@ -29,8 +29,9 @@ from app.schemas.admin import (
     ProductUpdate,
     ReturnStatusUpdate,
     StoreSettingWrite,
+    VariantUpdate,
 )
-from app.schemas.catalog import CategoryRead, ProductRead
+from app.schemas.catalog import CategoryRead, ProductRead, VariantRead
 from app.services.email import queue_order_event
 from app.services.order_lifecycle import release_order_inventory
 
@@ -114,6 +115,20 @@ async def update_product(
     await session.commit()
     await session.refresh(product, attribute_names=["variants", "category"])
     return product
+
+
+@router.patch("/variants/{variant_id}", response_model=VariantRead)
+async def update_variant(
+    variant_id: uuid.UUID, payload: VariantUpdate, session: Session
+) -> ProductVariant:
+    variant = await session.get(ProductVariant, variant_id)
+    if variant is None:
+        raise HTTPException(status_code=404, detail="Variant not found")
+    for key, value in payload.model_dump(exclude_unset=True).items():
+        setattr(variant, key, value)
+    await session.commit()
+    await session.refresh(variant)
+    return variant
 
 
 @router.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
