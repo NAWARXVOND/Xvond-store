@@ -5,7 +5,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import type { Locale } from "@/lib/i18n";
 import { MultiAuthOptions } from "./multi-auth-options";
 
-type Profile = { id: string; full_name: string; email: string };
+type Profile = { id: string; full_name: string; email: string | null; phone?: string | null };
 type Address = { id: string; label: string; governorate: string; city: string; address_line: string; postal_code?: string };
 type Order = { order_number: string; status: string; payment_status: string; currency: string; grand_total: string; created_at: string };
 type AuthStage = "identifier" | "password" | "register" | "phone_code";
@@ -25,7 +25,6 @@ export function AccountView({ locale }: { locale: Locale }) {
   const [orders, setOrders] = useState<Order[]>([]);
   const [stage, setStage] = useState<AuthStage>("identifier");
   const [identifier, setIdentifier] = useState("");
-  const [phoneExisting, setPhoneExisting] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -61,8 +60,15 @@ export function AccountView({ locale }: { locale: Locale }) {
   function resetAuth() {
     setStage("identifier");
     setIdentifier("");
-    setPhoneExisting(false);
     setMessage("");
+  }
+
+  async function sendPhoneCode(phone: string) {
+    await request("/auth/phone/start", {
+      method: "POST",
+      body: JSON.stringify({ phone, locale }),
+    });
+    setMessage(ar ? "أرسلنا رمز التحقق إلى رقمك." : "We sent a verification code to your phone.");
   }
 
   async function identify(event: FormEvent<HTMLFormElement>) {
@@ -77,19 +83,14 @@ export function AccountView({ locale }: { locale: Locale }) {
         body: JSON.stringify({ identifier: value }),
       }) as IdentifyResult;
       setIdentifier(response.identifier);
-      setPhoneExisting(response.existing);
 
       if (response.next_action === "password") {
         setStage("password");
       } else if (response.next_action === "register") {
         setStage("register");
       } else if (response.next_action === "phone_otp") {
-        await request("/auth/phone/start", {
-          method: "POST",
-          body: JSON.stringify({ phone: response.identifier, locale }),
-        });
+        await sendPhoneCode(response.identifier);
         setStage("phone_code");
-        setMessage(ar ? "أرسلنا رمز التحقق إلى رقمك." : "We sent a verification code to your phone.");
       } else {
         setMessage(ar ? "الدخول برقم الهاتف غير مفعّل حاليًا." : "Phone sign-in is not enabled yet.");
       }
@@ -136,18 +137,29 @@ export function AccountView({ locale }: { locale: Locale }) {
     setBusy(true);
     const data = new FormData(event.currentTarget);
     try {
-      await request("/auth/phone/verify", {
+      await request("/auth/phone/confirm", {
         method: "POST",
         body: JSON.stringify({
           phone: identifier,
           code: data.get("code"),
-          email: phoneExisting ? null : String(data.get("email") || "").trim(),
         }),
       });
       await load();
       window.dispatchEvent(new Event("xvond-account-changed"));
     } catch {
-      setMessage(ar ? "رمز التحقق غير صحيح أو منتهي، أو بيانات الحساب غير مكتملة." : "The code is invalid or expired, or the account details are incomplete.");
+      setMessage(ar ? "رمز التحقق غير صحيح أو منتهي." : "The verification code is invalid or expired.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resendPhoneCode() {
+    setMessage("");
+    setBusy(true);
+    try {
+      await sendPhoneCode(identifier);
+    } catch {
+      setMessage(ar ? "تعذر إعادة إرسال الرمز. حاول مرة أخرى." : "Could not resend the code. Try again.");
     } finally {
       setBusy(false);
     }
@@ -199,7 +211,6 @@ export function AccountView({ locale }: { locale: Locale }) {
             {ar ? "البريد الإلكتروني أو رقم الهاتف" : "Email or phone number"}
             <input
               name="identifier"
-              inputMode="email"
               autoComplete="username"
               placeholder={ar ? "البريد الإلكتروني أو رقم عُماني" : "Email or Oman phone number"}
               required
@@ -226,16 +237,14 @@ export function AccountView({ locale }: { locale: Locale }) {
         {stage === "phone_code" && <form onSubmit={(event) => void verifyPhone(event)}>
           <p className="coupon-message">{identifier}</p>
           <h2>{ar ? "أدخل رمز التحقق" : "Enter verification code"}</h2>
+          <p>{ar ? "أدخل الرمز الذي أرسلناه إلى رقم هاتفك. إذا كان الرقم جديدًا سننشئ الحساب تلقائيًا." : "Enter the code sent to your phone. If this number is new, your account will be created automatically."}</p>
           <label>
             {ar ? "رمز التحقق" : "Verification code"}
             <input name="code" inputMode="numeric" autoComplete="one-time-code" required />
           </label>
-          {!phoneExisting && <label>
-            {ar ? "بريدك الإلكتروني لإكمال الحساب" : "Your email to complete the account"}
-            <input name="email" type="email" autoComplete="email" required />
-          </label>}
-          {message && <p className="form-error">{message}</p>}
+          {message && <p className="coupon-message">{message}</p>}
           <button className="primary-button" disabled={busy}>{ar ? "تأكيد والمتابعة" : "Verify and continue"}</button>
+          <button className="text-button" type="button" disabled={busy} onClick={() => void resendPhoneCode()}>{ar ? "إعادة إرسال الرمز" : "Resend code"}</button>
           <button className="text-button" type="button" onClick={resetAuth}>{ar ? "استخدام بريد أو رقم آخر" : "Use another email or phone"}</button>
         </form>}
 
@@ -244,8 +253,10 @@ export function AccountView({ locale }: { locale: Locale }) {
     </main>;
   }
 
+  const accountLabel = profile.email || profile.phone || (ar ? "عضو Xvond" : "Xvond member");
+
   return <main className="content-page shell account-page">
-    <header><div><p className="eyebrow">XVOND MEMBERS</p><h1>{ar ? `أهلًا، ${profile.full_name}` : `Welcome, ${profile.full_name}`}</h1><p>{profile.email}</p>{message && <small>{message}</small>}</div><button className="secondary-button" onClick={() => void logout()}>{ar ? "تسجيل الخروج" : "Sign out"}</button></header>
+    <header><div><p className="eyebrow">XVOND MEMBERS</p><h1>{ar ? `أهلًا، ${profile.full_name}` : `Welcome, ${profile.full_name}`}</h1><p>{accountLabel}</p>{message && <small>{message}</small>}</div><button className="secondary-button" onClick={() => void logout()}>{ar ? "تسجيل الخروج" : "Sign out"}</button></header>
     <section><h2>{ar ? "عناويني" : "My addresses"}</h2><form className="account-address-form" action={addAddress}><input name="label" placeholder={ar ? "اسم العنوان: المنزل" : "Label: Home"} defaultValue="home" required /><input name="governorate" placeholder={ar ? "المحافظة" : "Governorate"} required /><input name="city" placeholder={ar ? "المدينة" : "City"} required /><input name="address_line" placeholder={ar ? "العنوان بالتفصيل" : "Full address"} required /><input name="postal_code" placeholder={ar ? "الرمز البريدي (اختياري)" : "Postal code (optional)"} /><button className="primary-button">{ar ? "حفظ العنوان" : "Save address"}</button></form><div className="account-cards">{addresses.map((address) => <article key={address.id}><strong>{address.label}</strong><p>{address.governorate} — {address.city}</p><small>{address.address_line}</small><button className="danger-link" onClick={() => void removeAddress(address.id)}>{ar ? "حذف" : "Remove"}</button></article>)}</div></section>
     <section><h2>{ar ? "طلباتي" : "My orders"}</h2><div className="account-orders">{orders.length ? orders.map((order) => <article key={order.order_number}><div><strong>{order.order_number}</strong><small>{new Date(order.created_at).toLocaleDateString(ar ? "ar-OM" : "en-OM")}</small></div><span>{order.grand_total} {order.currency}</span><span>{order.status}</span><Link href={`/${locale}/track-order?order=${order.order_number}`}>{ar ? "تتبع الطلب" : "Track order"}</Link></article>) : <div className="empty-card"><p>{ar ? "لا توجد طلبات بعد." : "No orders yet."}</p></div>}</div></section>
     <section><h2>{ar ? "طلب استرجاع" : "Request a return"}</h2><form className="return-form" action={requestReturn}><input name="order_number" placeholder={ar ? "رقم الطلب" : "Order number"} required /><textarea name="reason" minLength={5} maxLength={2000} placeholder={ar ? "سبب طلب الاسترجاع" : "Reason for the return request"} required /><button className="primary-button">{ar ? "إرسال للمراجعة" : "Submit for review"}</button></form></section>
