@@ -2,8 +2,8 @@ import type { Locale } from "./i18n";
 
 export type StoreContext = "lifestyle" | "smart";
 
-export const LIFESTYLE_CATEGORY_SLUGS = ["women", "kids", "luxury-gifts", "automotive"] as const;
-export const SMART_CATEGORY_SLUGS = ["electronics", "xvond-box"] as const;
+export const LIFESTYLE_CATEGORY_SLUGS = ["women", "kids", "luxury-gifts", "automotive", "xvond-box"] as const;
+export const SMART_CATEGORY_SLUGS = ["electronics"] as const;
 
 const lifestyleSet = new Set<string>(LIFESTYLE_CATEGORY_SLUGS);
 const smartSet = new Set<string>(SMART_CATEGORY_SLUGS);
