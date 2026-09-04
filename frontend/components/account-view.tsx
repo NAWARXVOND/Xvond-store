@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import type { Locale } from "@/lib/i18n";
+import { MultiAuthOptions } from "./multi-auth-options";
 
 type Profile = { id: string; full_name: string; email: string };
 type Address = { id: string; label: string; governorate: string; city: string; address_line: string; postal_code?: string };
@@ -66,7 +67,7 @@ export function AccountView({ locale }: { locale: Locale }) {
     }
   }
 
-  if (!profile) return <main className="content-page shell account-auth"><form onSubmit={(event) => void authenticate(event)}><p className="eyebrow">XVOND MEMBERS</p><h1>{register ? (ar ? "إنشاء حساب" : "Create account") : (ar ? "تسجيل الدخول" : "Sign in")}</h1>{register && <label>{ar ? "الاسم الكامل" : "Full name"}<input name="full_name" required minLength={2} /></label>}<label>{ar ? "البريد الإلكتروني" : "Email"}<input name="email" type="email" required /></label><label>{ar ? "كلمة المرور" : "Password"}<input name="password" type="password" required minLength={10} /></label>{message && <p className="form-error">{message}</p>}<button className="primary-button">{register ? (ar ? "إنشاء الحساب" : "Create account") : (ar ? "دخول" : "Sign in")}</button><button className="text-button" type="button" onClick={() => setRegister(!register)}>{register ? (ar ? "لديك حساب؟ سجل الدخول" : "Already registered? Sign in") : (ar ? "ليس لديك حساب؟ أنشئ حسابًا" : "New here? Create an account")}</button>{!register && <Link className="text-button" href={`/${locale}/account/reset`}>{ar ? "نسيت كلمة المرور؟" : "Forgot password?"}</Link>}</form></main>;
+  if (!profile) return <main className="content-page shell account-auth"><form onSubmit={(event) => void authenticate(event)}><p className="eyebrow">XVOND MEMBERS</p><h1>{register ? (ar ? "إنشاء حساب" : "Create account") : (ar ? "تسجيل الدخول" : "Sign in")}</h1>{register && <label>{ar ? "الاسم الكامل" : "Full name"}<input name="full_name" required minLength={2} /></label>}<label>{ar ? "البريد الإلكتروني" : "Email"}<input name="email" type="email" required /></label><label>{ar ? "كلمة المرور" : "Password"}<input name="password" type="password" required minLength={10} /></label>{message && <p className="form-error">{message}</p>}<button className="primary-button">{register ? (ar ? "إنشاء الحساب" : "Create account") : (ar ? "دخول" : "Sign in")}</button><button className="text-button" type="button" onClick={() => setRegister(!register)}>{register ? (ar ? "لديك حساب؟ سجل الدخول" : "Already registered? Sign in") : (ar ? "ليس لديك حساب؟ أنشئ حسابًا" : "New here? Create an account")}</button>{!register && <Link className="text-button" href={`/${locale}/account/reset`}>{ar ? "نسيت كلمة المرور؟" : "Forgot password?"}</Link>}<MultiAuthOptions locale={locale} onSignedIn={() => void load()} /></form></main>;
 
   return <main className="content-page shell account-page">
     <header><div><p className="eyebrow">XVOND MEMBERS</p><h1>{ar ? `أهلًا، ${profile.full_name}` : `Welcome, ${profile.full_name}`}</h1><p>{profile.email}</p>{message && <small>{message}</small>}</div><button className="secondary-button" onClick={() => void logout()}>{ar ? "تسجيل الخروج" : "Sign out"}</button></header>

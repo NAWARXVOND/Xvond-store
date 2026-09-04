@@ -28,6 +28,18 @@ class Settings(BaseSettings):
     tap_merchant_id: str | None = None
     tap_source_id: str = "src_all"
     tap_webhook_url: str | None = None
+    google_client_id: str | None = None
+    google_client_secret: str | None = None
+    google_redirect_uri: str | None = None
+    apple_client_id: str | None = None
+    apple_team_id: str | None = None
+    apple_key_id: str | None = None
+    apple_private_key: str | None = None
+    apple_redirect_uri: str | None = None
+    twilio_account_sid: str | None = None
+    twilio_auth_token: str | None = None
+    twilio_verify_service_sid: str | None = None
+    courier_webhook_secret: str | None = None
     cors_origins: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
@@ -39,6 +51,24 @@ class Settings(BaseSettings):
     @property
     def secure_cookies(self) -> bool:
         return self.app_env == "production"
+
+    @property
+    def google_auth_enabled(self) -> bool:
+        return bool(self.google_client_id and self.google_client_secret and self.google_redirect_uri)
+
+    @property
+    def apple_auth_enabled(self) -> bool:
+        return bool(
+            self.apple_client_id
+            and self.apple_team_id
+            and self.apple_key_id
+            and self.apple_private_key
+            and self.apple_redirect_uri
+        )
+
+    @property
+    def phone_auth_enabled(self) -> bool:
+        return bool(self.twilio_account_sid and self.twilio_auth_token and self.twilio_verify_service_sid)
 
     @model_validator(mode="after")
     def validate_production(self) -> "Settings":
