@@ -24,6 +24,14 @@ class VariantCreate(BaseModel):
     stock_quantity: int = Field(ge=0, le=1_000_000)
 
 
+class VariantUpdate(BaseModel):
+    title_ar: str | None = Field(default=None, min_length=1, max_length=180)
+    title_en: str | None = Field(default=None, min_length=1, max_length=180)
+    price: Decimal | None = Field(default=None, gt=0, decimal_places=3)
+    compare_at_price: Decimal | None = Field(default=None, gt=0, decimal_places=3)
+    stock_quantity: int | None = Field(default=None, ge=0, le=1_000_000)
+
+
 class AdminProductCreate(BaseModel):
     slug: str = Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=180)
     sku: str = Field(min_length=2, max_length=80)
