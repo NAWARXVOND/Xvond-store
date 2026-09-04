@@ -118,6 +118,7 @@ class Order(UUIDMixin, TimestampMixin, Base):
     payment_status: Mapped[PaymentStatus] = mapped_column(
         Enum(PaymentStatus), default=PaymentStatus.pending, index=True
     )
+    payment_method: Mapped[str] = mapped_column(String(30), default="manual", index=True)
     currency: Mapped[str] = mapped_column(String(3), default="OMR")
     subtotal: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
     discount_total: Mapped[Decimal] = mapped_column(Numeric(12, 3), default=0)
