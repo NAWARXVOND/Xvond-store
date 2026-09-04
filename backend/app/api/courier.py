@@ -1,6 +1,6 @@
 import secrets
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
@@ -94,9 +94,11 @@ async def apply_event(
     )
 
     normalized = (payload.shipment_status or payload.event_code).lower()
-    if normalized in {"picked_up", "in_transit", "out_for_delivery", "shipped"}:
-        if order.status in {OrderStatus.pending, OrderStatus.confirmed, OrderStatus.processing}:
-            order.status = OrderStatus.shipped
+    if (
+        normalized in {"picked_up", "in_transit", "out_for_delivery", "shipped"}
+        and order.status in {OrderStatus.pending, OrderStatus.confirmed, OrderStatus.processing}
+    ):
+        order.status = OrderStatus.shipped
     if normalized == "delivered":
         order.status = OrderStatus.delivered
     if order.payment_method == "cash_on_delivery" and payload.cod_status in {"collected", "settled"}:
