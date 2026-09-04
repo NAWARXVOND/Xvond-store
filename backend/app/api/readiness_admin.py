@@ -41,6 +41,7 @@ async def launch_readiness(session: Session) -> dict[str, object]:
     )
     # Cash on delivery is a production payment method, so Tap is optional at launch.
     payment_ready = True
+    residency_ready = settings.database_residency_country.strip().upper() == "OM"
     production_ready = settings.app_env == "production" and settings.frontend_url.startswith(
         "https://"
     )
@@ -63,6 +64,15 @@ async def launch_readiness(session: Session) -> dict[str, object]:
             "key": "shipping",
             "ready": bool(shipping_rates),
             "detail": f"{shipping_rates or 0} active Oman delivery areas · free delivery",
+        },
+        {
+            "key": "data_residency",
+            "ready": residency_ready,
+            "detail": (
+                "Primary database declared in Oman"
+                if residency_ready
+                else f"DATABASE_RESIDENCY_COUNTRY={settings.database_residency_country}"
+            ),
         },
         {
             "key": "email",
