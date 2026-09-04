@@ -18,11 +18,12 @@ export function MultiAuthOptions({ locale }: { locale: Locale }) {
   });
 
   useEffect(() => {
-    void fetch(`${apiUrl}/auth/providers`)
-      .then(async (response) => {
-        if (response.ok) setProviders(await response.json() as Providers);
-      })
-      .catch(() => undefined);
+    void Promise.all([
+      fetch(`${apiUrl}/auth/providers`).then(async (response) => response.ok ? response.json() as Promise<Omit<Providers, "facebook">> : null),
+      fetch(`${apiUrl}/auth/facebook/status`).then(async (response) => response.ok ? response.json() as Promise<{ enabled: boolean }> : null),
+    ]).then(([base, facebook]) => {
+      if (base) setProviders({ ...base, facebook: Boolean(facebook?.enabled) });
+    }).catch(() => undefined);
   }, []);
 
   if (!providers.google && !providers.apple && !providers.facebook) return null;
