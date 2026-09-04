@@ -12,8 +12,8 @@ describe("store routing helpers", () => {
   it("maps real categories to their owning store", () => {
     expect(storeForCategorySlug("women")).toBe("lifestyle");
     expect(storeForCategorySlug("automotive")).toBe("lifestyle");
+    expect(storeForCategorySlug("xvond-box")).toBe("lifestyle");
     expect(storeForCategorySlug("electronics")).toBe("smart");
-    expect(storeForCategorySlug("xvond-box")).toBe("smart");
     expect(storeForCategorySlug("unknown")).toBeNull();
   });
 
@@ -21,6 +21,7 @@ describe("store routing helpers", () => {
     expect(storeForPath("/ar/lifestyle", "ar")).toBe("lifestyle");
     expect(storeForPath("/en/smart/new-arrivals", "en")).toBe("smart");
     expect(storeForPath("/ar/category/kids", "ar")).toBe("lifestyle");
+    expect(storeForPath("/ar/category/xvond-box", "ar")).toBe("lifestyle");
     expect(storeForPath("/ar/category/electronics", "ar")).toBe("smart");
   });
 
@@ -33,6 +34,7 @@ describe("store routing helpers", () => {
   it("builds canonical store paths", () => {
     expect(storeHomePath("ar", "lifestyle")).toBe("/ar/lifestyle");
     expect(storeNewArrivalsPath("en", "smart")).toBe("/en/smart/new-arrivals");
-    expect(categorySlugsForStore("smart")).toEqual(["electronics", "xvond-box"]);
+    expect(categorySlugsForStore("lifestyle")).toEqual(["women", "kids", "luxury-gifts", "automotive", "xvond-box"]);
+    expect(categorySlugsForStore("smart")).toEqual(["electronics"]);
   });
 });
