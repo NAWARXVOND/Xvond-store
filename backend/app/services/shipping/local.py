@@ -1,7 +1,5 @@
 from decimal import Decimal
 
-from app.models.shipping import ShippingRate
-
 
 OMAN_GOVERNORATE_ALIASES = {
     "muscat": "muscat",
@@ -57,7 +55,3 @@ def calculate_shipping_amount(
     if free_over is not None and merchandise_total >= free_over:
         return Decimal("0.000")
     return rate_amount
-
-
-def shipping_amount(rate: ShippingRate, merchandise_total: Decimal) -> Decimal:
-    return calculate_shipping_amount(rate.amount, rate.free_over, merchandise_total)
