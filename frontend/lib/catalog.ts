@@ -16,6 +16,15 @@ export const STORE_CATEGORIES: Category[] = [
   { id: "department-automotive", slug: "automotive", label: { ar: "السيارات ومستلزماتها", en: "Automotive" }, description: { ar: "إكسسوارات ومستلزمات عملية للسيارة والقيادة.", en: "Practical car accessories and driving essentials." } },
 ];
 
+export type ProductVariant = {
+  id: string;
+  sku: string;
+  title: { ar: string; en: string };
+  price: number;
+  previousPrice?: number;
+  stock: number;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -27,7 +36,9 @@ export type Product = {
   previousPrice?: number;
   image: string;
   variantId?: string;
+  variantTitle?: { ar: string; en: string };
   stock: number;
+  variants: ProductVariant[];
 };
 
 type ApiCategory = {
@@ -41,6 +52,9 @@ type ApiCategory = {
 
 type ApiVariant = {
   id: string;
+  sku: string;
+  title_ar: string;
+  title_en: string;
   price: string | number;
   compare_at_price?: string | number | null;
   stock_quantity: number;
@@ -91,24 +105,52 @@ export function validPreviousPrice(price: number, compareAtPrice?: string | numb
   return previousPrice;
 }
 
+function mapVariant(variant: ApiVariant): ProductVariant {
+  const price = Number(variant.price);
+  return {
+    id: variant.id,
+    sku: variant.sku,
+    title: { ar: variant.title_ar, en: variant.title_en },
+    price,
+    previousPrice: validPreviousPrice(price, variant.compare_at_price),
+    stock: variant.stock_quantity,
+  };
+}
+
 function toProduct(product: ApiProduct): Product {
-  const variant = product.variants[0];
-  const price = Number(variant?.price ?? 0);
+  const variants = product.variants.map(mapVariant);
+  const defaultVariant = variants.find((variant) => variant.stock > 0) ?? variants[0];
   return {
     id: product.id,
     slug: product.slug,
-    sku: product.sku,
+    sku: defaultVariant?.sku ?? product.sku,
     category: product.category.slug,
     name: { ar: product.name_ar, en: product.name_en },
     description: {
       ar: product.description_ar ?? undefined,
       en: product.description_en ?? undefined,
     },
-    price,
-    previousPrice: validPreviousPrice(price, variant?.compare_at_price),
+    price: defaultVariant?.price ?? 0,
+    previousPrice: defaultVariant?.previousPrice,
     image: product.primary_image_url || FALLBACK_IMAGE,
-    variantId: variant?.id,
-    stock: product.variants.reduce((total, item) => total + item.stock_quantity, 0),
+    variantId: defaultVariant?.id,
+    variantTitle: defaultVariant?.title,
+    stock: variants.reduce((total, item) => total + item.stock, 0),
+    variants,
+  };
+}
+
+export function productWithVariant(product: Product, variantId: string): Product {
+  const variant = product.variants.find((item) => item.id === variantId);
+  if (!variant) return product;
+  return {
+    ...product,
+    sku: variant.sku,
+    price: variant.price,
+    previousPrice: variant.previousPrice,
+    variantId: variant.id,
+    variantTitle: variant.title,
+    stock: variant.stock,
   };
 }
 
