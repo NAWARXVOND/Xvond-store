@@ -1,9 +1,10 @@
 from datetime import UTC, datetime
+from types import SimpleNamespace
 
 import pytest
 from pydantic import ValidationError
 
-from app.api.courier import ShipmentEventWrite, ShipmentWrite
+from app.api.courier import ShipmentEventWrite, ShipmentWrite, is_duplicate_event
 
 
 def test_shipment_assignment_accepts_tracking_data() -> None:
@@ -38,3 +39,24 @@ def test_invalid_cod_status_is_rejected() -> None:
             occurred_at=datetime.now(UTC),
             cod_status="unknown",
         )
+
+
+def test_replayed_courier_event_is_detected() -> None:
+    occurred_at = datetime.now(UTC)
+    payload = ShipmentEventWrite(
+        event_code="delivered",
+        label_ar="تم التسليم",
+        label_en="Delivered",
+        occurred_at=occurred_at,
+        raw_reference="provider-event-123",
+    )
+    shipment = SimpleNamespace(
+        events=[
+            SimpleNamespace(
+                event_code="delivered",
+                occurred_at=occurred_at,
+                raw_reference="provider-event-123",
+            )
+        ]
+    )
+    assert is_duplicate_event(shipment, payload) is True
