@@ -16,57 +16,56 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"
 
 function StoreBrand({ href, label }: { href: string; label: string }) {
   return (
-    <Link href={href} className="brand brand-logo" aria-label={label} style={{ gap: ".55rem", minWidth: 0 }}>
+    <Link href={href} className="brand brand-logo" aria-label={label} style={{ gap: ".62rem", minWidth: 0 }}>
       <span
         aria-hidden="true"
         style={{
-          width: "52px",
-          height: "52px",
+          width: "60px",
+          height: "60px",
           display: "grid",
-          placeItems: "center",
+          placeItems: "start center",
           flex: "0 0 auto",
           overflow: "hidden",
           background: "transparent",
           border: 0,
+          filter: "drop-shadow(0 0 9px rgba(22,140,255,.26))",
         }}
       >
         <StoreLogo
-          size={66}
+          size={94}
           priority
           style={{
-            width: "66px",
-            height: "66px",
+            width: "94px",
+            height: "94px",
             maxWidth: "none",
-            mixBlendMode: "screen",
-            filter: "brightness(1.08) contrast(1.12) saturate(1.08) drop-shadow(0 0 12px rgba(22, 140, 255, .22))",
-            transform: "scale(1.08)",
+            flex: "0 0 auto",
+            transform: "translateY(-2px)",
+            filter: "brightness(1.08) contrast(1.08) saturate(1.08)",
           }}
         />
       </span>
-      <span style={{ display: "flex", alignItems: "baseline", gap: ".38rem", minWidth: 0, whiteSpace: "nowrap" }}>
+      <span style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: ".12rem", minWidth: 0, whiteSpace: "nowrap" }}>
         <strong
           style={{
-            fontSize: "clamp(.98rem, 1.4vw, 1.18rem)",
+            fontSize: "clamp(1.12rem, 1.7vw, 1.48rem)",
             fontWeight: 800,
-            letterSpacing: "-.035em",
-            lineHeight: 1,
-            background: "linear-gradient(135deg, #168cff 8%, #50d5ff 92%)",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            color: "transparent",
-            textShadow: "0 0 22px rgba(22, 140, 255, .16)",
+            letterSpacing: "-.045em",
+            lineHeight: .94,
+            color: "#37b9ff",
+            textShadow: "0 0 7px rgba(80,213,255,.72), 0 0 18px rgba(22,140,255,.42)",
           }}
         >
           Xvond
         </strong>
         <span
           style={{
-            color: "#dcecff",
-            fontSize: "clamp(.62rem, .85vw, .76rem)",
+            color: "#f7fbff",
+            fontSize: "clamp(.57rem, .82vw, .72rem)",
             fontWeight: 700,
-            letterSpacing: ".08em",
+            letterSpacing: ".13em",
+            lineHeight: 1,
             textTransform: "uppercase",
-            opacity: .92,
+            textShadow: "0 0 7px rgba(255,255,255,.45), 0 0 13px rgba(80,213,255,.18)",
           }}
         >
           Smart Store
