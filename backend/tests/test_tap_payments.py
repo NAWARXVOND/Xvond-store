@@ -5,7 +5,9 @@ from decimal import Decimal
 import pytest
 from pydantic import ValidationError
 
+from app.api.payments import next_payment_status
 from app.core.config import Settings
+from app.models.commerce import PaymentStatus
 from app.services.payments.tap import format_tap_amount, normalize_oman_phone, tap_webhook_hash
 
 
@@ -37,6 +39,22 @@ def test_tap_webhook_hash_matches_documented_formula() -> None:
     )
     expected = hmac.new(secret.encode(), message.encode(), hashlib.sha256).hexdigest()
     assert tap_webhook_hash(payload, secret) == expected
+
+
+def test_captured_marks_payment_paid() -> None:
+    assert next_payment_status(PaymentStatus.pending, "CAPTURED") == PaymentStatus.paid
+
+
+def test_authorized_marks_unpaid_order_authorized() -> None:
+    assert next_payment_status(PaymentStatus.pending, "AUTHORIZED") == PaymentStatus.authorized
+
+
+def test_late_authorized_webhook_cannot_regress_paid_order() -> None:
+    assert next_payment_status(PaymentStatus.paid, "AUTHORIZED") == PaymentStatus.paid
+
+
+def test_late_failure_webhook_cannot_regress_paid_order() -> None:
+    assert next_payment_status(PaymentStatus.paid, "FAILED") == PaymentStatus.paid
 
 
 def test_production_requires_tap_credentials_when_enabled() -> None:
