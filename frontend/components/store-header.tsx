@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -9,8 +10,18 @@ import { copy } from "@/lib/i18n";
 import { appendStoreContext, storeForPath, storeNewArrivalsPath } from "@/lib/store-context";
 import { useCommerce } from "./commerce-provider";
 
-type HeaderProfile = { id: string; full_name: string; email: string };
+type HeaderProfile = { id: string; full_name: string; email: string | null; phone?: string | null };
+type SessionResponse = { authenticated: boolean; profile?: HeaderProfile | null };
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
+function StoreBrand({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} className="brand brand-logo" aria-label={label}>
+      <Image src={`${basePath}/xvond-store-logo.svg`} alt="Xvond Store" width={156} height={42} priority />
+    </Link>
+  );
+}
 
 export function StoreHeader({ locale }: { locale: Locale }) {
   const t = copy[locale];
@@ -29,12 +40,13 @@ export function StoreHeader({ locale }: { locale: Locale }) {
 
   const loadProfile = useCallback(async () => {
     try {
-      const response = await fetch(`${apiUrl}/account/me`, { credentials: "include", cache: "no-store" });
+      const response = await fetch(`${apiUrl}/auth/session`, { credentials: "include", cache: "no-store" });
       if (!response.ok) {
         setProfile(null);
         return;
       }
-      setProfile(await response.json() as HeaderProfile);
+      const session = await response.json() as SessionResponse;
+      setProfile(session.authenticated ? session.profile ?? null : null);
     } catch {
       setProfile(null);
     }
@@ -53,10 +65,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
     return (
       <header className="site-header gateway-header">
         <div className="header-shell gateway-header-shell">
-          <Link href={`/${locale}`} className="brand" aria-label="Xvond Store home">
-            <span className="brand-mark">X</span>
-            <span><strong>Xvond</strong><small>STORE</small></span>
-          </Link>
+          <StoreBrand href={`/${locale}`} label="Xvond Store home" />
           <Link href={languagePath || `/${otherLocale}`} className="language-switch" hrefLang={otherLocale}>{otherLocale.toUpperCase()}</Link>
         </div>
       </header>
@@ -83,10 +92,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
         <span>{storeName}</span>
       </div>
       <div className="header-shell marketplace-header-shell">
-        <Link href={store ? `/${locale}/${store}` : `/${locale}`} className="brand" aria-label={`${storeName} home`}>
-          <span className="brand-mark">X</span>
-          <span><strong>Xvond</strong><small>{store ? store.toUpperCase() : "STORE"}</small></span>
-        </Link>
+        <StoreBrand href={store ? `/${locale}/${store}` : `/${locale}`} label={`${storeName} home`} />
         <form className="search-box marketplace-search" action={`/${locale}/search`}>
           <MagnifyingGlassIcon />
           <input name="q" type="search" placeholder={searchPlaceholder} aria-label={t.search} />
@@ -111,7 +117,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
             )}
           </Link>
           <Link href={wishlistHref} className="header-tool"><HeartIcon /><span>{t.wishlist}</span></Link>
-          <Link href={cartHref} className="header-tool cart-link"><ShoppingBagIcon /><span className="tool-label">{t.cart}</span><b>{cartCount}</b></Link>
+          <Link href={cartHref} className="header-tool cart-link" aria-label={t.cart}><ShoppingBagIcon /><b>{cartCount}</b></Link>
         </nav>
       </div>
 
