@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BoltIcon, CubeIcon, GiftIcon, PuzzlePieceIcon, SparklesIcon, TruckIcon } from "@heroicons/react/24/outline";
+import { BoltIcon, CheckBadgeIcon, CubeIcon, GiftIcon, PuzzlePieceIcon, ShieldCheckIcon, SparklesIcon, TruckIcon } from "@heroicons/react/24/outline";
 import { ProductCard } from "@/components/product-card";
 import { getCategories, getProducts } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
@@ -46,7 +46,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
   const [categories, products] = await Promise.all([getCategories(), getProducts({ sort: "newest", limit: 12 })]);
 
-  const heroProducts = products.filter((product) => !product.image.includes("product-placeholder.svg")).slice(0, 4);
+  const heroProducts = products.filter((product) => !product.image.includes("product-placeholder.svg")).slice(0, 5);
   const heroItems = heroProducts.length
     ? heroProducts.map((product) => ({
         key: product.id,
@@ -54,7 +54,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         alt: product.name[locale],
         href: `/${locale}/product/${product.slug}`,
       }))
-    : categories.slice(0, 4).map((category) => ({
+    : categories.slice(0, 5).map((category) => ({
         key: category.id,
         src: `${basePath}${categoryArtwork[category.slug] ?? "/category-art/electronics.svg"}`,
         alt: category.label[locale],
@@ -66,28 +66,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <section className={styles.heroSection}>
         <div className={styles.heroGlow} aria-hidden="true" />
         <div className={styles.heroContent}>
-          <p className={styles.xvondMark}>XVOND SMART STORE</p>
+          <p className={styles.heroEyebrow}>{ar ? "اختيارات أذكى · يوم أفضل" : "SMARTER CHOICES · A BRIGHTER TOMORROW"}</p>
           <h1>
             {ar ? (
-              <>ابتكار <span>يلائم يومك</span></>
+              <>الابتكار <span>يعيش هنا</span></>
             ) : (
-              <>Innovation <span>for your everyday</span></>
+              <>Innovation <span>lives here</span></>
             )}
           </h1>
-          <p className={styles.introCopy}>
-            {ar
-              ? "تقنية، إكسسوارات، اختيارات للنساء والأطفال والسيارة، وهدايا مميزة — كلها ضمن تجربة تسوق واحدة مصممة بعناية."
-              : "Tech, accessories, picks for women, kids and your car, plus standout gifts — all in one carefully designed shopping experience."}
-          </p>
+          <p className={styles.heroSubline}>{ar ? "منتجات ذكية · أسلوب عصري · تجربة أذكى" : "Smart products · Modern lifestyle · A smarter you"}</p>
           <Link href={`/${locale}/new-arrivals`} className={styles.heroCta}>
             {ar ? "تسوّق الآن" : "Shop now"}
             <span aria-hidden="true">→</span>
           </Link>
-          <div className={styles.heroTrust}>
-            <span><TruckIcon />{ar ? "توصيل مجاني داخل عُمان" : "Free delivery in Oman"}</span>
-            <span><BoltIcon />{ar ? "منتجات مختارة" : "Curated products"}</span>
-            <span><SparklesIcon />{ar ? "تجربة Xvond" : "The Xvond experience"}</span>
-          </div>
         </div>
 
         <div className={styles.heroVisual} aria-label={ar ? "منتجات مختارة من المتجر" : "Selected store products"}>
@@ -101,10 +92,16 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
+      <section className={styles.trustStrip} aria-label={ar ? "مزايا المتجر" : "Store benefits"}>
+        <div><TruckIcon /><span><strong>{ar ? "توصيل مجاني" : "Free Shipping"}</strong><small>{ar ? "داخل سلطنة عُمان" : "Across Oman"}</small></span></div>
+        <div><ShieldCheckIcon /><span><strong>{ar ? "دفع آمن" : "Secure Payment"}</strong><small>{ar ? "حماية للطلب والبيانات" : "Protected checkout"}</small></span></div>
+        <div><CheckBadgeIcon /><span><strong>{ar ? "جودة مختارة" : "Premium Quality"}</strong><small>{ar ? "منتجات مختارة بعناية" : "Curated for you"}</small></span></div>
+      </section>
+
       <section id="categories" className={styles.categoriesSection} aria-labelledby="categories-title">
         <div className={styles.sectionHeading}>
-          <h2 id="categories-title">{ar ? "حسب الفئات" : "Shop by category"}</h2>
-          <span>{ar ? "اختيارات واضحة لكل احتياج" : "A clear place for every need"}</span>
+          <h2 id="categories-title">{ar ? "حسب الفئات" : "Shop by Category"}</h2>
+          <Link href={`/${locale}/search`}>{ar ? "استكشف كل الفئات" : "Explore All Categories"} →</Link>
         </div>
         <div className={styles.categoryRail}>
           {categories.map((category) => {
@@ -118,7 +115,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     src={categoryProduct?.image ?? artwork}
                     alt={category.label[locale]}
                     fill
-                    sizes="(max-width: 640px) 90vw, (max-width: 980px) 45vw, 31vw"
+                    sizes="(max-width: 640px) 90vw, (max-width: 980px) 45vw, 16vw"
                     className={styles.categoryImage}
                   />
                   <span className={styles.categoryShade} aria-hidden="true" />
@@ -126,6 +123,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     <Icon />
                     <strong>{category.label[locale]}</strong>
                     <small>{category.description[locale]}</small>
+                    <b aria-hidden="true">›</b>
                   </span>
                 </span>
               </Link>
@@ -136,8 +134,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
       <section className={styles.productsSection}>
         <div className={styles.productsHeading}>
-          <h2>{ar ? "أحدث المنتجات" : "Latest products"}</h2>
-          <Link href={`/${locale}/new-arrivals`}>{ar ? "عرض المزيد" : "View more"}</Link>
+          <h2>{ar ? "أحدث المنتجات" : "Featured Products"}</h2>
+          <Link href={`/${locale}/new-arrivals`}>{ar ? "عرض كل المنتجات" : "View All Products"} →</Link>
         </div>
         {products.length
           ? <div className={styles.productsGrid}>{products.map((product) => <ProductCard key={product.id} product={product} locale={locale} />)}</div>
