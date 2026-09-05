@@ -14,10 +14,11 @@ type HeaderProfile = { id: string; full_name: string; email: string | null; phon
 type SessionResponse = { authenticated: boolean; profile?: HeaderProfile | null };
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-function StoreBrand({ href, label }: { href: string; label: string }) {
+function StoreBrand({ href, label, name }: { href: string; label: string; name: string }) {
   return (
     <Link href={href} className="brand brand-logo" aria-label={label}>
-      <StoreLogo className="header-store-logo" priority />
+      <StoreLogo size={64} priority />
+      <span><strong>{name}</strong></span>
     </Link>
   );
 }
@@ -66,11 +67,8 @@ export function StoreHeader({ locale }: { locale: Locale }) {
 
   return (
     <header className="site-header marketplace-header">
-      <div className="announcement marketplace-announcement">
-        <span>{storeName}</span>
-      </div>
       <div className="header-shell marketplace-header-shell">
-        <StoreBrand href={`/${locale}`} label={`${storeName} home`} />
+        <StoreBrand href={`/${locale}`} label={`${storeName} home`} name={storeName} />
         <form className="search-box marketplace-search" action={`/${locale}/search`}>
           <MagnifyingGlassIcon />
           <input name="q" type="search" placeholder={searchPlaceholder} aria-label={t.search} />
