@@ -9,6 +9,7 @@ from app.core.database import get_session
 from app.core.security import require_admin
 from app.models.commerce import Product, ProductVariant
 from app.models.shipping import ShippingRate
+from app.services.shipping.local import OMAN_GOVERNORATE_KEYS
 
 router = APIRouter(
     prefix="/admin/launch-readiness",
@@ -16,7 +17,7 @@ router = APIRouter(
     dependencies=[Depends(require_admin)],
 )
 Session = Annotated[AsyncSession, Depends(get_session)]
-EXPECTED_OMAN_GOVERNORATES = 11
+EXPECTED_OMAN_GOVERNORATES = len(OMAN_GOVERNORATE_KEYS)
 
 
 @router.get("")
@@ -26,10 +27,14 @@ async def launch_readiness(session: Session) -> dict[str, object]:
         select(func.count(Product.id)).where(Product.is_active.is_(True))
     )
     stocked_variants = await session.scalar(
-        select(func.count(ProductVariant.id)).where(ProductVariant.stock_quantity > 0)
+        select(func.count(ProductVariant.id))
+        .join(Product, Product.id == ProductVariant.product_id)
+        .where(Product.is_active.is_(True), ProductVariant.stock_quantity > 0)
     )
-    shipping_rates = await session.scalar(
-        select(func.count(ShippingRate.id)).where(ShippingRate.is_active.is_(True))
+    active_shipping_keys = set(
+        await session.scalars(
+            select(ShippingRate.governorate_key).where(ShippingRate.is_active.is_(True))
+        )
     )
     paid_shipping_rates = await session.scalar(
         select(func.count(ShippingRate.id)).where(
@@ -45,11 +50,10 @@ async def launch_readiness(session: Session) -> dict[str, object]:
         and settings.tap_merchant_id
         and settings.tap_webhook_url
     )
-    # Cash on delivery is a production payment method, so Tap is optional at launch.
     payment_ready = True
     residency_ready = settings.database_residency_country.strip().upper() == "OM"
     shipping_ready = (
-        (shipping_rates or 0) >= EXPECTED_OMAN_GOVERNORATES
+        active_shipping_keys == OMAN_GOVERNORATE_KEYS
         and (paid_shipping_rates or 0) == 0
     )
     production_ready = settings.app_env == "production" and settings.frontend_url.startswith(
@@ -62,7 +66,7 @@ async def launch_readiness(session: Session) -> dict[str, object]:
             "ready": bool(active_products and stocked_variants),
             "detail": (
                 f"{active_products or 0} active products, "
-                f"{stocked_variants or 0} stocked variants"
+                f"{stocked_variants or 0} stocked variants on active products"
             ),
         },
         {
@@ -74,7 +78,7 @@ async def launch_readiness(session: Session) -> dict[str, object]:
             "key": "shipping",
             "ready": shipping_ready,
             "detail": (
-                f"{shipping_rates or 0}/{EXPECTED_OMAN_GOVERNORATES} active Oman governorates · "
+                f"{len(active_shipping_keys)}/{EXPECTED_OMAN_GOVERNORATES} required Oman governorates active · "
                 f"{paid_shipping_rates or 0} with non-zero delivery fee"
             ),
         },
