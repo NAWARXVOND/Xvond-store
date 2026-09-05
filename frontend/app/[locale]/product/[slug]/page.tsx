@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { ProductPurchase } from "@/components/product-purchase";
 import { formatPrice, getProduct } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
-import { storeForCategorySlug, storeHomePath } from "@/lib/store-context";
 import { absoluteUrl } from "@/lib/urls";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
@@ -15,7 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   if (!product) return {};
   return {
     title: product.name[locale],
-    description: product.description[locale] || `${product.name[locale]} — Xvond Store`,
+    description: product.description[locale] || `${product.name[locale]} — Xvond Smart Store`,
     alternates: { canonical: absoluteUrl(`/${locale}/product/${slug}`) },
     openGraph: { title: product.name[locale], images: [product.image] },
   };
@@ -27,9 +26,7 @@ export default async function ProductPage({ params }: { params: Promise<{ locale
   const product = await getProduct(slug);
   if (!product) notFound();
   const ar = locale === "ar";
-  const store = storeForCategorySlug(product.category);
-  if (!store) notFound();
-  const storeName = store === "lifestyle" ? "Xvond Lifestyle Store" : "Xvond Smart Store";
+  const storeName = "Xvond Smart Store";
   const discount = product.previousPrice
     ? Math.round((1 - product.price / product.previousPrice) * 100)
     : 0;
@@ -50,7 +47,7 @@ export default async function ProductPage({ params }: { params: Promise<{ locale
   };
   return (
     <main className="content-page shell">
-      <Link href={storeHomePath(locale, store)} className="secondary-button">← {storeName}</Link>
+      <Link href={`/${locale}`} className="secondary-button">← {storeName}</Link>
       <div className="box-feature product-detail" style={{ marginTop: "1.5rem" }}>
         <div className="hero-visual"><Image src={product.image} alt={product.name[locale]} fill sizes="(max-width: 800px) 100vw, 50vw" /></div>
         <div className="feature-copy">

@@ -7,8 +7,8 @@ import { absoluteUrl } from "@/lib/urls";
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) return {};
-  const title = locale === "ar" ? "سياسة الاسترجاع والتبديل | Xvond Store" : "Return & Exchange Policy | Xvond Store";
-  const description = locale === "ar" ? "سياسة الاسترجاع والتبديل والاسترداد في Xvond Store." : "Returns, exchanges, and refunds policy for Xvond Store.";
+  const title = locale === "ar" ? "سياسة الاسترجاع والتبديل | Xvond Smart Store" : "Return & Exchange Policy | Xvond Smart Store";
+  const description = locale === "ar" ? "سياسة الاسترجاع والتبديل والاسترداد في Xvond Smart Store." : "Returns, exchanges, and refunds policy for Xvond Smart Store.";
   return { title, description, alternates: { canonical: absoluteUrl(`/${locale}/returns`) } };
 }
 

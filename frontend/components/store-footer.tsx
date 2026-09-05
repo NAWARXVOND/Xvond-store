@@ -2,26 +2,23 @@
 
 import { StoreLogo } from "./store-logo";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
-import { storeForPath } from "@/lib/store-context";
 
 export function StoreFooter({ locale }: { locale: Locale }) {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const ar = locale === "ar";
-  const store = storeForPath(pathname, locale, searchParams.get("store"));
 
-  if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/admin`)) return null;
+  if (pathname.startsWith(`/${locale}/admin`)) return null;
 
-  const storeName = store === "lifestyle" ? "Xvond Lifestyle Store" : store === "smart" ? "Xvond Smart Store" : "Xvond Store";
-  const shopHref = store ? `/${locale}/${store}` : `/${locale}`;
+  const storeName = "Xvond Smart Store";
+  const shopHref = `/${locale}`;
 
   return (
     <footer className="footer">
       <div className="footer-brand">
         <StoreLogo size={120} />
-        <div><strong>{storeName}</strong><p>Xvond Store</p></div>
+        <div><strong>{storeName}</strong><p>{ar ? "تقنية مختارة لحياتك اليومية" : "Selected tech for everyday life"}</p></div>
       </div>
       <div className="footer-links">
         <Link href={shopHref}>{ar ? "المتجر" : "Store"}</Link>
@@ -29,7 +26,7 @@ export function StoreFooter({ locale }: { locale: Locale }) {
         <Link href={`/${locale}/terms`}>{ar ? "شروط الاستخدام" : "Terms"}</Link>
         <Link href={`/${locale}/returns`}>{ar ? "الاسترجاع والتبديل" : "Returns & Exchanges"}</Link>
       </div>
-      <p className="copyright">© {new Date().getFullYear()} Xvond Store</p>
+      <p className="copyright">© {new Date().getFullYear()} Xvond Smart Store</p>
     </footer>
   );
 }
