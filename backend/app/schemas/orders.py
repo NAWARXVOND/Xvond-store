@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from decimal import Decimal
 from typing import Literal
@@ -28,6 +29,7 @@ class CheckoutCustomer(BaseModel):
 
 class CheckoutItem(BaseModel):
     product_slug: str = Field(pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$", max_length=180)
+    variant_id: uuid.UUID | None = None
     quantity: int = Field(ge=1, le=99)
 
 
