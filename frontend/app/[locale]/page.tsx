@@ -33,7 +33,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <p className={styles.xvondMark}>XVOND SMART STORE</p>
           <h1>{ar ? "تقنية مختارة لحياتك اليومية" : "Selected tech for everyday life"}</h1>
           <p className={styles.introCopy}>{ar ? "أجهزة وإكسسوارات عملية، وهدايا مميزة تجمع الفائدة والمتعة." : "Useful devices and accessories, with thoughtful gifts that combine function and fun."}</p>
-          <Link href="#categories" className="primary-button">{ar ? "اكتشف الأقسام" : "Explore categories"}</Link>
         </div>
       </section>
       <section id="categories" className={styles.categoriesSection} aria-labelledby="categories-title">
