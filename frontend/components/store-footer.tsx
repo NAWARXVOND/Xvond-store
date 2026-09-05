@@ -1,12 +1,10 @@
 "use client";
 
-import Image from "next/image";
+import { StoreLogo } from "./store-logo";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
 import { storeForPath } from "@/lib/store-context";
-
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 export function StoreFooter({ locale }: { locale: Locale }) {
   const pathname = usePathname();
@@ -22,7 +20,7 @@ export function StoreFooter({ locale }: { locale: Locale }) {
   return (
     <footer className="footer">
       <div className="footer-brand">
-        <Image src={`${basePath}/xvond-store-logo.svg`} alt="Xvond Store" width={142} height={38} />
+        <StoreLogo size={120} />
         <div><strong>{storeName}</strong><p>Xvond Store</p></div>
       </div>
       <div className="footer-links">

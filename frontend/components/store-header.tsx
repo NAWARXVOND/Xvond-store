@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { StoreLogo } from "./store-logo";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -13,12 +13,11 @@ import { useCommerce } from "./commerce-provider";
 type HeaderProfile = { id: string; full_name: string; email: string | null; phone?: string | null };
 type SessionResponse = { authenticated: boolean; profile?: HeaderProfile | null };
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 function StoreBrand({ href, label }: { href: string; label: string }) {
   return (
     <Link href={href} className="brand brand-logo" aria-label={label}>
-      <Image src={`${basePath}/xvond-store-logo.svg`} alt="Xvond Store" width={156} height={42} priority />
+      <StoreLogo className="header-store-logo" priority />
     </Link>
   );
 }

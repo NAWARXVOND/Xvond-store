@@ -332,3 +332,13 @@ button, input { font: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
 }
+
+.store-logo { display: block; object-fit: contain; flex-shrink: 0; height: auto; }
+.header-store-logo { width: 96px; }
+@media (max-width: 800px) {
+  .header-store-logo { width: 72px; }
+}
+
+@media (max-width: 900px) {
+  .admin-brand .store-logo { width: 40px; }
+}
