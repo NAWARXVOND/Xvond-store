@@ -81,6 +81,7 @@ export type ProductFilters = {
   inStock?: boolean;
   sort?: "newest" | "price-asc" | "price-desc";
   limit?: number;
+  offset?: number;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
@@ -182,6 +183,7 @@ export async function getProducts(filters: ProductFilters = {}): Promise<Product
   if (filters.inStock) params.set("in_stock", "true");
   if (filters.sort) params.set("sort", filters.sort);
   params.set("limit", String(filters.limit ?? 24));
+  if (filters.offset) params.set("offset", String(filters.offset));
   const data = await apiFetch<ApiProduct[]>(`/catalog/products?${params}`);
   return data?.map(toProduct) ?? [];
 }
