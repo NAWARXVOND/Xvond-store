@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response,
 from fastapi.responses import RedirectResponse
 from jwt import PyJWKClient
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import or_, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.accounts import set_session_cookie
@@ -121,6 +121,8 @@ async def customer_for_identity(
         session.add(customer)
         await session.flush()
     else:
+        if not customer.is_active:
+            raise HTTPException(status_code=401, detail="Account is unavailable")
         if phone and customer.phone is None:
             customer.phone = phone
         if full_name and customer.full_name.strip().lower() in {"customer", "xvond member"}:
@@ -389,22 +391,29 @@ async def phone_verify(
     if not verify_response.is_success or verify_response.json().get("status") != "approved":
         raise HTTPException(status_code=401, detail="Verification code is invalid or expired")
 
-    existing = await session.scalar(
-        select(Customer).where(or_(Customer.phone == phone, Customer.email == payload.email))
-    )
-    if existing is None and payload.email is None:
-        raise HTTPException(
-            status_code=409,
-            detail="email_required_for_first_phone_signup",
-        )
-    email = str(payload.email).lower() if payload.email else (existing.email if existing else None)
+    existing = await session.scalar(select(Customer).where(Customer.phone == phone))
+    if existing is not None and not existing.is_active:
+        raise HTTPException(status_code=401, detail="Account is unavailable")
+
+    if existing is None:
+        if payload.email is None:
+            raise HTTPException(status_code=409, detail="email_required_for_first_phone_signup")
+        email = str(payload.email).lower()
+        email_owner = await session.scalar(select(Customer).where(Customer.email == email))
+        if email_owner is not None:
+            raise HTTPException(status_code=409, detail="email_already_registered")
+        full_name = payload.full_name
+    else:
+        email = existing.email
+        full_name = payload.full_name or existing.full_name
+
     customer = await customer_for_identity(
         session,
         provider="phone",
         subject=phone,
         email=email,
         phone=phone,
-        full_name=payload.full_name or (existing.full_name if existing else None),
+        full_name=full_name,
     )
     set_session_cookie(response, create_session(str(customer.id), "customer"))
     return {"id": str(customer.id), "email": customer.email, "phone": customer.phone}
