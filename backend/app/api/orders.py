@@ -269,27 +269,26 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
             status_code=409,
             detail="Email and phone belong to different customer accounts",
         )
+
     customer = email_customer or phone_customer
+    customer_was_created = customer is None
     if customer is None:
         customer = Customer(email=email, phone=phone, full_name=payload.customer.fullName)
         session.add(customer)
         await session.flush()
-    else:
-        if customer.email is None:
-            customer.email = email
-        if customer.phone is None:
-            customer.phone = phone
-        customer.full_name = payload.customer.fullName
 
-    session.add(
-        Address(
-            customer_id=customer.id,
-            country_code=payload.customer.countryCode,
-            governorate=payload.customer.governorate,
-            city=payload.customer.city,
-            address_line=payload.customer.addressLine,
+    # Guest checkout must never alter authentication/profile identifiers on an
+    # existing account. The order keeps its own immutable contact/address copy.
+    if customer_was_created:
+        session.add(
+            Address(
+                customer_id=customer.id,
+                country_code=payload.customer.countryCode,
+                governorate=payload.customer.governorate,
+                city=payload.customer.city,
+                address_line=payload.customer.addressLine,
+            )
         )
-    )
 
     lines: list[OrderItem] = []
     for requested in payload.items:
