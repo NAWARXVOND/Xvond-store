@@ -16,60 +16,32 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1"
 
 function StoreBrand({ href, label }: { href: string; label: string }) {
   return (
-    <Link href={href} className="brand brand-logo" aria-label={label} style={{ gap: ".62rem", minWidth: 0 }}>
+    <Link href={href} className="brand brand-logo" aria-label={label} style={{ minWidth: 0 }}>
       <span
         aria-hidden="true"
         style={{
-          width: "60px",
-          height: "60px",
+          width: "190px",
+          height: "72px",
           display: "grid",
-          placeItems: "start center",
+          placeItems: "center",
           flex: "0 0 auto",
           overflow: "hidden",
           background: "transparent",
           border: 0,
-          filter: "drop-shadow(0 0 9px rgba(22,140,255,.26))",
+          filter: "drop-shadow(0 0 14px rgba(22,140,255,.32))",
         }}
       >
         <StoreLogo
-          size={94}
+          size={210}
           priority
           style={{
-            width: "94px",
-            height: "94px",
-            maxWidth: "none",
-            flex: "0 0 auto",
-            transform: "translateY(-2px)",
-            filter: "brightness(1.08) contrast(1.08) saturate(1.08)",
+            width: "190px",
+            height: "auto",
+            maxHeight: "72px",
+            objectFit: "contain",
+            filter: "brightness(1.08) contrast(1.1) saturate(1.12)",
           }}
         />
-      </span>
-      <span style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: ".12rem", minWidth: 0, whiteSpace: "nowrap" }}>
-        <strong
-          style={{
-            fontSize: "clamp(1.12rem, 1.7vw, 1.48rem)",
-            fontWeight: 800,
-            letterSpacing: "-.045em",
-            lineHeight: .94,
-            color: "#37b9ff",
-            textShadow: "0 0 7px rgba(80,213,255,.72), 0 0 18px rgba(22,140,255,.42)",
-          }}
-        >
-          Xvond
-        </strong>
-        <span
-          style={{
-            color: "#f7fbff",
-            fontSize: "clamp(.57rem, .82vw, .72rem)",
-            fontWeight: 700,
-            letterSpacing: ".13em",
-            lineHeight: 1,
-            textTransform: "uppercase",
-            textShadow: "0 0 7px rgba(255,255,255,.45), 0 0 13px rgba(80,213,255,.18)",
-          }}
-        >
-          Smart Store
-        </span>
       </span>
     </Link>
   );
@@ -110,7 +82,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
   if (admin) return null;
 
   const storeName = "Xvond Smart Store";
-  const searchPlaceholder = ar ? "ابحث في Xvond Smart Store..." : "Search Xvond Smart Store...";
+  const searchPlaceholder = ar ? "ابحث عن المنتجات والماركات..." : "Search for products, brands and more...";
   const accountHref = `/${locale}/account`;
   const wishlistHref = `/${locale}/wishlist`;
   const cartHref = `/${locale}/cart`;
@@ -124,7 +96,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
         <form className="search-box marketplace-search" action={`/${locale}/search`}>
           <MagnifyingGlassIcon />
           <input name="q" type="search" placeholder={searchPlaceholder} aria-label={t.search} />
-          <button type="submit">{ar ? "بحث" : "Search"}</button>
+          <button type="submit" aria-label={ar ? "بحث" : "Search"}><MagnifyingGlassIcon /></button>
         </form>
         <nav className="header-actions marketplace-actions" aria-label={ar ? "أدوات المتجر" : "Store tools"}>
           <Link href={languageHref} className="language-switch" hrefLang={otherLocale}>{otherLocale.toUpperCase()}</Link>
@@ -132,7 +104,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
             href={accountHref}
             className="header-tool"
             aria-label={accountLabel}
-            style={{ width: "auto", minWidth: "38px", borderRadius: "999px", paddingInline: ".35rem .65rem", display: "flex", gap: ".45rem" }}
+            style={{ width: "auto", minWidth: "42px", borderRadius: "999px", paddingInline: ".4rem .7rem", display: "flex", gap: ".45rem" }}
           >
             {profile ? (
               <>
@@ -140,20 +112,20 @@ export function StoreHeader({ locale }: { locale: Locale }) {
                 <span style={{ maxWidth: "110px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: ".72rem", fontWeight: 700 }}>{profile.full_name}</span>
               </>
             ) : (
-              <><UserCircleIcon /><span>{ar ? "تسجيل الدخول" : "Sign in"}</span></>
+              <><UserCircleIcon /><span>{ar ? "الحساب" : "Account"}</span></>
             )}
           </Link>
           <Link href={wishlistHref} className="header-tool"><HeartIcon /><span>{t.wishlist}</span></Link>
-          <Link href={cartHref} className="header-tool cart-link" aria-label={t.cart}><ShoppingBagIcon /><b>{cartCount}</b></Link>
+          <Link href={cartHref} className="header-tool cart-link" aria-label={t.cart}><ShoppingBagIcon /><span>{ar ? "السلة" : "Cart"}</span><b>{cartCount}</b></Link>
         </nav>
       </div>
 
       <nav className="department-nav shell" aria-label={ar ? "أقسام المتجر" : "Store categories"}>
-        <Link href={`/${locale}`} className="all-departments">{ar ? "الرئيسية" : "Home"}</Link>
+        <Link href={`/${locale}#categories`} className="all-departments">☰ {ar ? "كل الفئات" : "All Categories"}</Link>
         {STORE_CATEGORIES.map((category) => (
           <Link key={category.slug} href={`/${locale}/category/${category.slug}`}>{category.label[locale]}</Link>
         ))}
-        <Link href={`/${locale}/new-arrivals`}>{ar ? "وصل حديثًا" : "New arrivals"}</Link>
+        <Link href={`/${locale}/new-arrivals`}>{ar ? "وصل حديثًا" : "New Arrivals"}</Link>
       </nav>
     </header>
   );

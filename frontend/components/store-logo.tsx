@@ -20,7 +20,7 @@ export function StoreLogo({ size = 96, priority = false, className = "", style }
       sizes={`${size}px`}
       priority={priority}
       className={`store-logo ${className}`.trim()}
-      style={style}
+      style={{ objectFit: "contain", ...style }}
     />
   );
 }
