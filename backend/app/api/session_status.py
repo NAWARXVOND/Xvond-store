@@ -1,14 +1,13 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie
+from fastapi import APIRouter, Cookie, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.accounts import profile
 from app.core.database import get_session
 from app.core.security import SESSION_COOKIE, decode_session
 from app.models.commerce import Customer
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["authentication"])
 Session = Annotated[AsyncSession, Depends(get_session)]
