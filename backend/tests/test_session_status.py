@@ -1,6 +1,6 @@
-from app.main import app
+from app.api.session_status import router
 
 
 def test_guest_safe_session_route_is_registered() -> None:
-    paths = {route.path for route in app.routes if hasattr(route, "path")}
-    assert "/api/v1/auth/session" in paths
+    paths = {route.path for route in router.routes if hasattr(route, "path")}
+    assert "/auth/session" in paths
