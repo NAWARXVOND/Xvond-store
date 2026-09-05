@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi import HTTPException, Response
 
-import app.api.external_auth as external_auth
+from app.api import external_auth
 from app.api.external_auth import (
     PhoneVerifyRequest,
     normalize_oman_phone,
