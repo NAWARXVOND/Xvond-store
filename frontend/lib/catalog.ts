@@ -8,12 +8,78 @@ export type Category = {
 };
 
 export const STORE_CATEGORIES: Category[] = [
-  { id: "department-women", slug: "women", label: { ar: "نساء", en: "Women" }, description: { ar: "أزياء، جمال، حقائب وإكسسوارات مختارة للنساء.", en: "Fashion, beauty, bags and accessories selected for women." } },
-  { id: "department-kids", slug: "kids", label: { ar: "أطفال", en: "Kids" }, description: { ar: "اختيارات للأطفال من الملابس والألعاب والاحتياجات اليومية.", en: "Kids clothing, toys and everyday essentials." } },
-  { id: "department-electronics", slug: "electronics", label: { ar: "إلكترونيات", en: "Electronics" }, description: { ar: "إلكترونيات وأجهزة وإكسسوارات تقنية للاستخدام اليومي.", en: "Electronics, devices and practical tech accessories." } },
-  { id: "department-xvond-box", slug: "xvond-box", label: { ar: "Xvond Box", en: "Xvond Box" }, description: { ar: "صناديق وتجارب مختارة من Xvond للمناسبات والمفاجآت.", en: "Curated Xvond boxes for occasions, gifting and surprises." } },
-  { id: "department-gifts", slug: "luxury-gifts", label: { ar: "هدايا", en: "Gifts" }, description: { ar: "هدايا مميزة ومختارة للمناسبات المختلفة.", en: "Distinctive curated gifts for every occasion." } },
-  { id: "department-automotive", slug: "automotive", label: { ar: "السيارات ومستلزماتها", en: "Automotive" }, description: { ar: "إكسسوارات ومستلزمات عملية للسيارة والقيادة.", en: "Practical car accessories and driving essentials." } },
+  {
+    "id": "department-electronics",
+    "slug": "electronics",
+    "label": {
+      "ar": "تقنية وإكسسوارات",
+      "en": "Tech & Accessories"
+    },
+    "description": {
+      "ar": "أجهزة صغيرة، صوتيات، شواحن وإكسسوارات تقنية لحياتك اليومية.",
+      "en": "Small devices, audio, chargers and everyday tech accessories."
+    }
+  },
+  {
+    "id": "department-women",
+    "slug": "women",
+    "label": {
+      "ar": "للنساء",
+      "en": "For Women"
+    },
+    "description": {
+      "ar": "أجهزة العناية والجمال وإكسسوارات تقنية مختارة للنساء.",
+      "en": "Personal care devices, beauty tools and selected tech accessories for women."
+    }
+  },
+  {
+    "id": "department-kids",
+    "slug": "kids",
+    "label": {
+      "ar": "للأطفال",
+      "en": "For Kids"
+    },
+    "description": {
+      "ar": "ألعاب إلكترونية وأدوات تعليم تفاعلية وأجهزة مناسبة للأطفال.",
+      "en": "Electronic toys, interactive learning tools and devices for children."
+    }
+  },
+  {
+    "id": "department-automotive",
+    "slug": "automotive",
+    "label": {
+      "ar": "للسيارة",
+      "en": "For Your Car"
+    },
+    "description": {
+      "ar": "شواحن وكاميرات وحساسات وإكسسوارات إلكترونية للسيارة.",
+      "en": "Car chargers, cameras, sensors and electronic accessories."
+    }
+  },
+  {
+    "id": "department-luxury-gifts",
+    "slug": "luxury-gifts",
+    "label": {
+      "ar": "هدايا مميزة",
+      "en": "Gift Ideas"
+    },
+    "description": {
+      "ar": "منتجات تقنية مختارة للإهداء في المناسبات المختلفة.",
+      "en": "Selected tech gifts for different occasions."
+    }
+  },
+  {
+    "id": "department-xvond-box",
+    "slug": "xvond-box",
+    "label": {
+      "ar": "Xvond Box",
+      "en": "Xvond Box"
+    },
+    "description": {
+      "ar": "بوكسات تجمع منتجات متناسقة حول فكرة أو استخدام محدد.",
+      "en": "Boxes combining complementary products around a theme or use."
+    }
+  }
 ];
 
 export type ProductVariant = {
@@ -170,7 +236,7 @@ export async function getCategories(): Promise<Category[]> {
   if (!data) return STORE_CATEGORIES;
   const live = data.map(toCategory);
   const bySlug = new Map(live.map((category) => [category.slug, category]));
-  return STORE_CATEGORIES.map((fallback) => bySlug.get(fallback.slug) ?? fallback)
+  return STORE_CATEGORIES.map((fallback) => ({ ...(bySlug.get(fallback.slug) ?? fallback), label: fallback.label, description: fallback.description }))
     .concat(live.filter((category) => !STORE_CATEGORIES.some((fallback) => fallback.slug === category.slug)));
 }
 

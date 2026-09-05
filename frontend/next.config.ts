@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: imageHostname ? [{ protocol: "https", hostname: imageHostname }] : [],
   },
+  async redirects() {
+    return [
+      { source: "/:locale(ar|en)/lifestyle/new-arrivals", destination: "/:locale/new-arrivals", permanent: true },
+      { source: "/:locale(ar|en)/smart/new-arrivals", destination: "/:locale/new-arrivals", permanent: true },
+      { source: "/:locale(ar|en)/lifestyle", destination: "/:locale", permanent: true },
+      { source: "/:locale(ar|en)/smart", destination: "/:locale", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

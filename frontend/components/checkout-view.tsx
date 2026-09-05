@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { formatPrice } from "@/lib/catalog";
 import type { Locale } from "@/lib/i18n";
-import { appendStoreContext } from "@/lib/store-context";
 import { cartLineKey, useCommerce } from "./commerce-provider";
 
 const OMAN_GOVERNORATES = [
@@ -49,9 +48,6 @@ type PaymentMethod = "tap" | "cash_on_delivery";
 
 export function CheckoutView({ locale }: { locale: Locale }) {
   const { cart, clearCart } = useCommerce();
-  const searchParams = useSearchParams();
-  const hintedStore = searchParams.get("store");
-  const store = hintedStore === "lifestyle" || hintedStore === "smart" ? hintedStore : null;
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -183,7 +179,7 @@ export function CheckoutView({ locale }: { locale: Locale }) {
         return;
       }
       clearCart();
-      router.push(appendStoreContext(`/${locale}/order-confirmation?order=${encodeURIComponent(order.order_number)}&payment=cod`, store));
+      router.push(`/${locale}/order-confirmation?order=${encodeURIComponent(order.order_number)}&payment=cod`);
     } catch {
       setError(paymentMethod === "tap" && pendingPayment
         ? (ar ? "تعذر فتح صفحة الدفع. الطلب محفوظ، اضغط المحاولة مرة أخرى." : "Payment could not be opened. Your order is saved; try again.")
@@ -201,7 +197,7 @@ export function CheckoutView({ locale }: { locale: Locale }) {
         : (ar ? "المتابعة للدفع الآمن" : "Continue to secure payment")
       : (ar ? "تأكيد الطلب والدفع عند الاستلام" : "Place order · Cash on delivery");
 
-  const eyebrow = store === "lifestyle" ? "XVOND LIFESTYLE STORE" : store === "smart" ? "XVOND SMART STORE" : "SECURE CHECKOUT";
+  const eyebrow = "XVOND SMART STORE";
 
   return <main className="content-page shell commerce-page"><p className="eyebrow">{eyebrow}</p><h1>{ar ? "إتمام الطلب" : "Checkout"}</h1><div className="checkout-layout"><form className="checkout-form" action={submit}><h2>{ar ? "بيانات التواصل والتوصيل" : "Contact and delivery"}</h2><div className="pending-choice"><strong>{ar ? "التوصيل داخل سلطنة عُمان فقط" : "Delivery within Oman only"}</strong><p>{ar ? "توصيل مجاني · جميع الأسعار النهائية بالريال العُماني." : "Free delivery · all final prices are in OMR."}</p></div><div className="form-grid"><label>{ar ? "الاسم الكامل" : "Full name"}<input name="fullName" autoComplete="name" required /></label><label>{ar ? "البريد الإلكتروني" : "Email"}<input name="email" type="email" autoComplete="email" required /></label><label>{ar ? "رقم الهاتف" : "Phone"}<input name="phone" type="tel" autoComplete="tel" required /></label><label>{ar ? "الدولة" : "Country"}<input name="countryCode" value="OM" readOnly aria-label={ar ? "سلطنة عُمان" : "Oman"} /><small>{ar ? "سلطنة عُمان" : "Oman"}</small></label><label>{ar ? "المحافظة" : "Governorate"}<select name="governorate" value={governorate} onChange={(event) => { const value = event.target.value; setGovernorate(value); void refreshShipping(value); }} required><option value="">{ar ? "اختر المحافظة" : "Select governorate"}</option>{OMAN_GOVERNORATES.map((item) => <option key={item.value} value={item.value}>{ar ? item.ar : item.en}</option>)}</select></label><label>{ar ? "المدينة / الولاية" : "City / Wilayat"}<input name="city" required /></label><label className="full-field">{ar ? "العنوان بالتفصيل" : "Full address"}<textarea name="addressLine" rows={3} required /></label></div><div className="coupon-entry"><label>{ar ? "كود الخصم" : "Coupon code"}<input name="couponCode" value={coupon} onChange={(event) => setCoupon(event.target.value)} maxLength={60} dir="ltr" /></label><button className="secondary-button" type="button" onClick={() => void applyCoupon()} disabled={!coupon.trim()}>{ar ? "تطبيق" : "Apply"}</button></div>{couponMessage && <p className="coupon-message">{couponMessage}</p>}{quote?.shipping_available && <div className="pending-choice"><strong>{ar ? "التوصيل" : "Delivery"}</strong><p>{ar ? "توصيل مجاني" : "Free delivery"}{quote.estimated_days_min && quote.estimated_days_max ? ` · ${quote.estimated_days_min}-${quote.estimated_days_max} ${ar ? "أيام" : "days"}` : ""}</p></div>}<div className="pending-choice"><strong>{ar ? "طريقة الدفع" : "Payment method"}</strong><label style={{ display: "flex", alignItems: "center", gap: ".55rem", marginTop: ".65rem" }}><input type="radio" name="paymentMethod" value="cash_on_delivery" checked={paymentMethod === "cash_on_delivery"} disabled={Boolean(pendingPayment)} onChange={() => setPaymentMethod("cash_on_delivery")} />{ar ? "الدفع عند الاستلام" : "Cash on delivery"}</label>{tapEnabled && <label style={{ display: "flex", alignItems: "center", gap: ".55rem", marginTop: ".5rem" }}><input type="radio" name="paymentMethod" value="tap" checked={paymentMethod === "tap"} disabled={Boolean(pendingPayment)} onChange={() => setPaymentMethod("tap")} />{ar ? "الدفع الإلكتروني الآمن عبر Tap" : "Secure online payment via Tap"}</label>}<p>{paymentMethod === "cash_on_delivery" ? (ar ? "تدفع قيمة الطلب عند استلامه." : "Pay the order total when it is delivered.") : (ar ? "سيتم تحويلك إلى صفحة Tap الآمنة بعد تأكيد الطلب." : "You will be redirected to Tap's secure payment page after placing the order.")}</p></div>{error && <p className="form-error" role="alert">{error}</p>}<p className="checkout-legal">{ar ? "بإتمام الطلب، أنت توافق على" : "By placing the order, you agree to the"} <Link href={`/${locale}/terms`}>{ar ? "شروط الاستخدام" : "Terms of Use"}</Link> {ar ? "وتقر بالاطلاع على" : "and acknowledge the"} <Link href={`/${locale}/privacy`}>{ar ? "سياسة الخصوصية" : "Privacy Policy"}</Link> {ar ? "و" : "and"} <Link href={`/${locale}/returns`}>{ar ? "سياسة الاسترجاع والتبديل" : "Return & Exchange Policy"}</Link>.</p><button className="primary-button" disabled={busy || cart.length === 0}>{buttonText}</button></form><aside className="order-summary"><h2>{ar ? "طلبك" : "Your order"}</h2>{cart.map((line) => <div key={cartLineKey(line.product)}><span>{line.product.name[locale]}{line.product.variantTitle ? ` · ${line.product.variantTitle[locale]}` : ""} × {line.quantity}</span><strong>{formatPrice(line.product.price * line.quantity, locale)}</strong></div>)}<hr /><div><span>{ar ? "المجموع الفرعي" : "Subtotal"}</span><strong>{formatPrice(quote?.subtotal ?? subtotal, locale)}</strong></div>{quote && quote.discount_total > 0 && <div className="discount-line"><span>{ar ? `الخصم (${quote.promotion_code})` : `Discount (${quote.promotion_code})`}</span><strong>-{formatPrice(quote.discount_total, locale)}</strong></div>}<div><span>{ar ? "التوصيل" : "Delivery"}</span><strong>{ar ? "مجاني" : "Free"}</strong></div><hr /><div><span>{ar ? "الإجمالي" : "Total"}</span><strong>{formatPrice(quote?.grand_total ?? subtotal, locale)}</strong></div></aside></div></main>;
 }

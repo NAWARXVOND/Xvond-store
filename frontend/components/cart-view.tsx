@@ -2,26 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { MinusIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { formatPrice } from "@/lib/catalog";
 import type { Locale } from "@/lib/i18n";
-import { appendStoreContext, storeForCategorySlug } from "@/lib/store-context";
 import { cartLineKey, useCommerce } from "./commerce-provider";
 
 export function CartView({ locale }: { locale: Locale }) {
   const { cart, removeFromCart, updateQuantity } = useCommerce();
-  const searchParams = useSearchParams();
-  const hintedStore = searchParams.get("store");
-  const store = hintedStore === "lifestyle" || hintedStore === "smart" ? hintedStore : null;
   const subtotal = cart.reduce((total, line) => total + line.product.price * line.quantity, 0);
   const ar = locale === "ar";
-  const continueHref = store ? `/${locale}/${store}` : `/${locale}`;
-  const checkoutHref = appendStoreContext(`/${locale}/checkout`, store);
+  const continueHref = `/${locale}`;
+  const checkoutHref = `/${locale}/checkout`;
 
   return (
     <main className="content-page shell commerce-page">
-      <p className="eyebrow">{store === "lifestyle" ? "XVOND LIFESTYLE STORE" : store === "smart" ? "XVOND SMART STORE" : "XVOND STORE"}</p><h1>{ar ? "سلة التسوق" : "Shopping cart"}</h1>
+      <p className="eyebrow">XVOND SMART STORE</p><h1>{ar ? "سلة التسوق" : "Shopping cart"}</h1>
       {cart.length === 0 ? (
         <div className="empty-card"><p>{ar ? "سلتك فارغة حاليًا." : "Your cart is currently empty."}</p><Link className="primary-button" href={continueHref}>{ar ? "متابعة التسوق" : "Continue shopping"}</Link></div>
       ) : (
@@ -29,7 +24,7 @@ export function CartView({ locale }: { locale: Locale }) {
           <div className="cart-lines">
             {cart.map(({ product, quantity }) => {
               const lineKey = cartLineKey(product);
-              const productHref = appendStoreContext(`/${locale}/product/${product.slug}`, storeForCategorySlug(product.category));
+              const productHref = `/${locale}/product/${product.slug}`;
               return (
                 <article className="cart-line" key={lineKey}>
                   <div className="cart-thumb"><Image src={product.image} alt={product.name[locale]} fill sizes="100px" /></div>

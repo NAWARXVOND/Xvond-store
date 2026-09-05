@@ -4,11 +4,11 @@ import { absoluteUrl } from "@/lib/urls";
 
 export const metadata: Metadata = {
   metadataBase: new URL(absoluteUrl("/")),
-  title: { default: "Xvond Store | متجر إلكتروني فاخر", template: "%s | Xvond Store" },
-  description: "Xvond Store — متجر إلكتروني بتشكيلة مختارة للنساء والأطفال والإلكترونيات والبوكسات والهدايا الفاخرة في سلطنة عُمان.",
-  applicationName: "Xvond Store",
+  title: { default: "Xvond Smart Store | تقنية مختارة لحياتك اليومية", template: "%s | Xvond Smart Store" },
+  description: "Xvond Smart Store — تقنية وإكسسوارات مختارة للنساء والأطفال والسيارة، وهدايا مميزة وXvond Box في سلطنة عُمان.",
+  applicationName: "Xvond Smart Store",
   alternates: { canonical: absoluteUrl("/ar"), languages: { "ar-OM": absoluteUrl("/ar"), "en-OM": absoluteUrl("/en") } },
-  openGraph: { type: "website", siteName: "Xvond Store", locale: "ar_OM", alternateLocale: "en_OM", title: "Xvond Store", description: "اختيارات استثنائية وهدايا فاخرة في مكان واحد.", url: absoluteUrl("/ar") },
+  openGraph: { type: "website", siteName: "Xvond Smart Store", locale: "ar_OM", alternateLocale: "en_OM", title: "Xvond Smart Store", description: "تقنية مختارة لحياتك اليومية.", url: absoluteUrl("/ar") },
   robots: { index: true, follow: true }
 };
 

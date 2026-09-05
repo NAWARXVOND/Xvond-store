@@ -8,7 +8,6 @@ import { absoluteUrl } from "@/lib/urls";
 import { CommerceProvider } from "@/components/commerce-provider";
 import "../legal.css";
 import "../marketplace.css";
-import "../store-gateway.css";
 
 export function generateStaticParams() { return locales.map((locale) => ({ locale })); }
 
@@ -16,7 +15,7 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   const organization = {
-    "@context": "https://schema.org", "@type": "OnlineStore", name: "Xvond Store",
+    "@context": "https://schema.org", "@type": "OnlineStore", name: "Xvond Smart Store",
     url: absoluteUrl(`/${locale}`), parentOrganization: { "@type": "Organization", name: "Xvond", url: "https://xvond.com" },
     areaServed: { "@type": "Country", name: "Oman" }
   };

@@ -4,7 +4,6 @@ import { notFound, redirect } from "next/navigation";
 import { ProductCard } from "@/components/product-card";
 import { getCategories, getProducts } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
-import { storeForCategorySlug, storeHomePath } from "@/lib/store-context";
 import { absoluteUrl } from "@/lib/urls";
 
 type Query = { min?: string; max?: string; stock?: string; sort?: "newest" | "price-asc" | "price-desc" };
@@ -25,13 +24,11 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function CategoryPage({ params, searchParams }: { params: Promise<{ locale: string; slug: string }>; searchParams: Promise<Query> }) {
   const [{ locale, slug }, query] = await Promise.all([params, searchParams]);
   if (!isLocale(locale)) notFound();
-  if (slug === "new-arrivals") redirect(`/${locale}`);
+  if (slug === "new-arrivals") redirect(`/${locale}/new-arrivals`);
 
   const categories = await getCategories();
   const category = categories.find((item) => item.slug === slug);
   if (!category) notFound();
-  const store = storeForCategorySlug(category.slug);
-  if (!store) notFound();
 
   const products = await getProducts({
     category: category.slug,
@@ -41,11 +38,11 @@ export default async function CategoryPage({ params, searchParams }: { params: P
     sort: query.sort || "newest",
   });
   const ar = locale === "ar";
-  const storeName = store === "lifestyle" ? "Xvond Lifestyle Store" : "Xvond Smart Store";
+  const storeName = "Xvond Smart Store";
 
   return (
     <main className="content-page shell">
-      <Link href={storeHomePath(locale, store)} className="secondary-button">← {storeName}</Link>
+      <Link href={`/${locale}`} className="secondary-button">← {storeName}</Link>
       <p className="eyebrow" style={{ marginTop: "2rem" }}>{storeName.toUpperCase()}</p>
       <h1>{category.label[locale]}</h1>
       {category.description[locale] && <p className="page-intro">{category.description[locale]}</p>}

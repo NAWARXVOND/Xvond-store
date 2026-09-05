@@ -104,7 +104,7 @@ export function OrderFulfillmentAdmin({ locale }: { locale: Locale }) {
   if (!authorized) return <main className="content-page shell"><h1>{ar ? "إدارة الطلبات" : "Order management"}</h1><p>{ar ? "سجل دخول الإدارة أولًا." : "Sign in to admin first."}</p><Link className="primary-button" href={`/${locale}/admin`}>{ar ? "دخول الإدارة" : "Admin sign in"}</Link></main>;
 
   return <main className="content-page shell commerce-page">
-    <p className="eyebrow">XVOND STORE ADMIN</p>
+    <p className="eyebrow">XVOND SMART STORE ADMIN</p>
     <h1>{ar ? "الطلبات والتجهيز" : "Orders & fulfillment"}</h1>
     <p><Link href={`/${locale}/admin`}>← {ar ? "العودة للوحة الإدارة" : "Back to admin"}</Link></p>
     {message && <p className="admin-message">{message}</p>}

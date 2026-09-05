@@ -7,7 +7,6 @@ import { HeartIcon as HeartSolidIcon } from "@heroicons/react/24/solid";
 import type { Locale } from "@/lib/i18n";
 import type { Product } from "@/lib/catalog";
 import { formatPrice } from "@/lib/catalog";
-import { appendStoreContext, storeForCategorySlug } from "@/lib/store-context";
 import { useCommerce } from "./commerce-provider";
 
 export function ProductCard({ product, locale }: { product: Product; locale: Locale }) {
@@ -17,7 +16,7 @@ export function ProductCard({ product, locale }: { product: Product; locale: Loc
     ? Math.round((1 - product.price / product.previousPrice) * 100)
     : 0;
   const ar = locale === "ar";
-  const productHref = appendStoreContext(`/${locale}/product/${product.slug}`, storeForCategorySlug(product.category));
+  const productHref = `/${locale}/product/${product.slug}`;
 
   return (
     <article className="product-card marketplace-product-card">
