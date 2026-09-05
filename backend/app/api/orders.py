@@ -14,6 +14,7 @@ from app.core.config import get_settings
 from app.core.database import get_session
 from app.models.commerce import (
     Address,
+    Category,
     Coupon,
     Customer,
     Discount,
@@ -33,7 +34,7 @@ from app.schemas.orders import (
 )
 from app.services.email import queue_order_event
 from app.services.pricing import included_vat, saving
-from app.services.shipping.local import normalize_governorate
+from app.services.shipping.local import calculate_shipping_amount, normalize_governorate
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 Session = Annotated[AsyncSession, Depends(get_session)]
@@ -50,8 +51,13 @@ async def load_products(
     slugs = {item.product_slug for item in items}
     statement = (
         select(Product)
+        .join(Category, Category.id == Product.category_id)
         .options(selectinload(Product.variants), selectinload(Product.category))
-        .where(Product.slug.in_(slugs), Product.is_active.is_(True))
+        .where(
+            Product.slug.in_(slugs),
+            Product.is_active.is_(True),
+            Category.is_active.is_(True),
+        )
     )
     if lock:
         statement = statement.with_for_update()
@@ -61,7 +67,6 @@ async def load_products(
         raise HTTPException(status_code=400, detail="One or more products are unavailable")
 
     if lock and products:
-        # selectinload uses a separate query, so lock the inventory rows explicitly.
         product_ids = [product.id for product in products]
         await session.scalars(
             select(ProductVariant)
@@ -206,6 +211,13 @@ async def calculate_quote(
                 ShippingRate.is_active.is_(True),
             )
         )
+        if rate is not None:
+            merchandise_total = max(subtotal - discount, Decimal("0.000"))
+            shipping_total = calculate_shipping_amount(
+                rate.amount,
+                rate.free_over,
+                merchandise_total,
+            )
     return products, subtotal, discount, promotion, coupon, rate, shipping_total
 
 
