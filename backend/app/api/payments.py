@@ -45,6 +45,20 @@ def tap_provider() -> TapPaymentProvider:
     )
 
 
+def next_payment_status(current: PaymentStatus, tap_status: str) -> PaymentStatus:
+    """Map Tap updates without allowing late webhooks to regress a paid order."""
+    normalized = tap_status.upper()
+    if current == PaymentStatus.paid:
+        return PaymentStatus.paid
+    if normalized == "CAPTURED":
+        return PaymentStatus.paid
+    if normalized == "AUTHORIZED":
+        return PaymentStatus.authorized
+    if normalized in {"FAILED", "DECLINED", "CANCELLED", "ABANDONED", "VOID"}:
+        return PaymentStatus.failed
+    return current
+
+
 @router.get("/config", response_model=PaymentConfigRead)
 async def payment_config() -> PaymentConfigRead:
     return PaymentConfigRead(tap_enabled=get_settings().tap_enabled)
@@ -56,10 +70,16 @@ async def create_tap_payment(
 ) -> PaymentRedirectRead:
     settings = get_settings()
     provider = tap_provider()
+
+    # Serialize payment creation per order so two clicks cannot create two Tap charges.
     order = await session.scalar(
         select(Order)
         .join(Customer)
-        .where(Order.order_number == order_number.upper(), Customer.email == payload.email)
+        .where(
+            Order.order_number == order_number.upper(),
+            Customer.email == str(payload.email).lower(),
+        )
+        .with_for_update()
     )
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
@@ -110,6 +130,7 @@ async def create_tap_payment(
             )
         )
     except (httpx.HTTPError, RuntimeError) as exc:
+        await session.rollback()
         raise HTTPException(status_code=502, detail="Payment provider unavailable") from exc
 
     session.add(
@@ -117,7 +138,7 @@ async def create_tap_payment(
             order_id=order.id,
             provider="tap",
             provider_payment_id=result.provider_payment_id,
-            status=result.status,
+            status=result.status.upper(),
             amount=order.grand_total,
             currency=order.currency,
             checkout_url=result.checkout_url,
@@ -145,11 +166,15 @@ async def tap_webhook(
 
     charge_id = str(payload.get("id") or "")
     attempt = await session.scalar(
-        select(PaymentAttempt).where(PaymentAttempt.provider_payment_id == charge_id)
+        select(PaymentAttempt)
+        .where(PaymentAttempt.provider_payment_id == charge_id)
+        .with_for_update()
     )
     if attempt is None:
         raise HTTPException(status_code=404, detail="Payment attempt not found")
-    order = await session.get(Order, attempt.order_id)
+    order = await session.scalar(
+        select(Order).where(Order.id == attempt.order_id).with_for_update()
+    )
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
 
@@ -160,8 +185,12 @@ async def tap_webhook(
         raise HTTPException(status_code=409, detail="Payment does not match order")
 
     tap_status = str(payload.get("status") or "UNKNOWN").upper()
-    attempt.status = tap_status
     was_paid = order.payment_status == PaymentStatus.paid
+
+    # CAPTURED is terminal for the attempt too; ignore delayed lower-state events afterward.
+    if attempt.status.upper() != "CAPTURED" or tap_status == "CAPTURED":
+        attempt.status = tap_status
+
     if tap_status == "CAPTURED":
         if order.inventory_released:
             raise HTTPException(status_code=409, detail="Order inventory was already released")
@@ -170,13 +199,10 @@ async def tap_webhook(
             order.status = OrderStatus.confirmed
         if not was_paid:
             customer = await session.get(Customer, order.customer_id)
-            if customer is not None:
+            if customer is not None and customer.email:
                 queue_order_event(session, customer.email, order.order_number, "confirmed")
-    elif tap_status == "AUTHORIZED":
-        order.payment_status = PaymentStatus.authorized
-    elif tap_status in {"FAILED", "DECLINED", "CANCELLED", "ABANDONED", "VOID"}:
-        if not was_paid:
-            order.payment_status = PaymentStatus.failed
+    else:
+        order.payment_status = next_payment_status(order.payment_status, tap_status)
 
     await session.commit()
     return {"ok": True}
