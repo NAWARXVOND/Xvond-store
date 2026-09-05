@@ -9,8 +9,9 @@ from app.core.config import get_settings
 from app.core.database import SessionFactory
 from app.models.commerce import Product, ProductVariant
 from app.models.shipping import ShippingRate
+from app.services.shipping.local import OMAN_GOVERNORATE_KEYS
 
-EXPECTED_OMAN_GOVERNORATES = 11
+EXPECTED_OMAN_GOVERNORATES = len(OMAN_GOVERNORATE_KEYS)
 
 
 def migration_head() -> str:
@@ -33,10 +34,14 @@ async def run() -> int:
             select(func.count(Product.id)).where(Product.is_active.is_(True))
         )
         stocked_variants = await session.scalar(
-            select(func.count(ProductVariant.id)).where(ProductVariant.stock_quantity > 0)
+            select(func.count(ProductVariant.id))
+            .join(Product, Product.id == ProductVariant.product_id)
+            .where(Product.is_active.is_(True), ProductVariant.stock_quantity > 0)
         )
-        shipping_rates = await session.scalar(
-            select(func.count(ShippingRate.id)).where(ShippingRate.is_active.is_(True))
+        active_shipping_keys = set(
+            await session.scalars(
+                select(ShippingRate.governorate_key).where(ShippingRate.is_active.is_(True))
+            )
         )
         paid_shipping_rates = await session.scalar(
             select(func.count(ShippingRate.id)).where(
@@ -55,11 +60,10 @@ async def run() -> int:
         "https_frontend": settings.frontend_url.startswith("https://"),
         "migrations": database_head == expected_head,
         "catalog": bool(active_products and stocked_variants),
-        "oman_governorates": (shipping_rates or 0) >= EXPECTED_OMAN_GOVERNORATES,
+        "oman_governorates": active_shipping_keys == OMAN_GOVERNORATE_KEYS,
         "free_delivery": (paid_shipping_rates or 0) == 0,
         "database_residency": settings.database_residency_country.strip().upper() == "OM",
         "smtp": bool(settings.smtp_host and settings.smtp_username and settings.smtp_password),
-        # Cash on delivery is sufficient for launch. Tap is an optional additional method.
         "payment": True,
     }
 
@@ -70,8 +74,14 @@ async def run() -> int:
 
     print(f"database migration: {database_head or 'missing'} / expected {expected_head}")
     print(f"active products: {active_products or 0}")
-    print(f"stocked variants: {stocked_variants or 0}")
-    print(f"active Oman delivery areas: {shipping_rates or 0}")
+    print(f"stocked variants on active products: {stocked_variants or 0}")
+    print(
+        f"required Oman delivery areas active: "
+        f"{len(active_shipping_keys & OMAN_GOVERNORATE_KEYS)}/{EXPECTED_OMAN_GOVERNORATES}"
+    )
+    unexpected = sorted(active_shipping_keys - OMAN_GOVERNORATE_KEYS)
+    if unexpected:
+        print("unexpected active delivery areas: " + ", ".join(unexpected))
     print(f"paid delivery areas: {paid_shipping_rates or 0}")
     print("payment methods: COD enabled" + (" + Tap ready" if tap_ready else " + Tap optional/not ready"))
 
