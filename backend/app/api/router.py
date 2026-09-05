@@ -13,11 +13,13 @@ from app.api import (
     phone_auth,
     profile,
     readiness_admin,
+    session_status,
     shipping_admin,
 )
 
 api_router = APIRouter()
 api_router.include_router(accounts.router)
+api_router.include_router(session_status.router)
 api_router.include_router(phone_auth.router)
 api_router.include_router(external_auth.router)
 api_router.include_router(facebook_auth.router)
