@@ -4,12 +4,18 @@ Premium bilingual commerce platform for **Xvond Store**, intentionally separate 
 
 ## Store architecture
 
-The public storefront has one fixed entry gateway and two first-class stores:
+The public storefront is one unified **Xvond Smart Store**. Arabic and English shoppers open `/ar` or `/en` directly without a store-selection gateway.
 
-- **Xvond Lifestyle Store** — Women, Kids, Gifts, Automotive.
-- **Xvond Smart Store** — Smart Tech and Xvond Box.
+The main departments are:
 
-They share one account, wishlist, cart, checkout, order system and admin platform. The public gateway at `/{locale}` is the only top-level store selector. Legacy mixed-store browsing routes are not used as storefront destinations.
+- **Tech & Accessories**
+- **For Women**
+- **For Kids**
+- **For Your Car**
+- **Gift Ideas**
+- **Xvond Box**
+
+All departments share one catalog, account, wishlist, cart, checkout, order system and admin platform. Legacy Lifestyle/Smart storefront URLs are retained only as permanent redirects to the unified storefront; store/channel query parameters are not part of the active shopping flow.
 
 ## Current launch market
 
@@ -44,7 +50,7 @@ alembic upgrade head
 python scripts/seed_catalog.py
 ```
 
-The migrations seed the 11 Oman governorates as free-delivery areas. The catalog seed command is idempotent and prepares the approved Store categories. Products added through admin become visible through their owning Lifestyle or Smart collection, search, product, wishlist and sitemap routes through the catalog API.
+The migrations seed the 11 Oman governorates as free-delivery areas. The catalog seed command is idempotent and prepares the approved Store categories. Products added through admin become visible in the unified storefront through their category, search, product, wishlist and sitemap routes through the catalog API.
 
 Checkout quotes are calculated by the backend from current prices and inventory. The highest eligible automatic discount or coupon is applied (promotions do not stack), and stock is allocated atomically when a pending order is created. Cancelling an order or expiring an abandoned online-payment order releases its allocated stock and restores coupon usage exactly once.
 
@@ -101,7 +107,7 @@ Backups are written to `./backups/` with restrictive permissions and are ignored
 
 ## Scope and remaining launch inputs
 
-The codebase includes the localized two-store storefront, cart/wishlist, customer accounts, SEO, catalog and inventory management, Oman-only checkout enforcement, all 11 Oman governorates, free delivery, OMR pricing, COD, optional Tap hosted payments, promotions, admin operations, transactional email, abandoned-online-order inventory recovery, legal policy pages, and launch-readiness tooling.
+The codebase includes the localized unified Xvond Smart Store storefront, cart/wishlist, customer accounts, SEO, catalog and inventory management, Oman-only checkout enforcement, all 11 Oman governorates, free delivery, OMR pricing, COD, optional Tap hosted payments, promotions, admin operations, transactional email, abandoned-online-order inventory recovery, legal policy pages, and launch-readiness tooling.
 
 The following are real business or infrastructure inputs and must not be invented in code: actual sellable product data and stock, an Oman-hosted production VPS/database, production secrets, SMTP credentials, final legal-operator details, suppliers, product media/storage, reverse-proxy/DNS/HTTPS deployment, operational delivery/courier process, tax/VAT treatment, and off-server backups. Tap live credentials/merchant approval are needed only if online Tap payment is enabled at launch.
 
