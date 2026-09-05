@@ -36,7 +36,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
       <section id="categories" className={styles.categoriesSection} aria-labelledby="categories-title">
-        <h2 id="categories-title">{ar ? "تسوّق حسب الاستخدام" : "Shop by use"}</h2>
+        <h2 id="categories-title">{ar ? "حسب الفئات" : "Shop by category"}</h2>
         <div className={styles.categoryRail}>
           {categories.map((category) => {
             const categoryProduct = products.find((product) => product.category === category.slug);

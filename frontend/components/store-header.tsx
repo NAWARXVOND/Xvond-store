@@ -14,11 +14,64 @@ type HeaderProfile = { id: string; full_name: string; email: string | null; phon
 type SessionResponse = { authenticated: boolean; profile?: HeaderProfile | null };
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
-function StoreBrand({ href, label, name }: { href: string; label: string; name: string }) {
+function StoreBrand({ href, label }: { href: string; label: string }) {
   return (
-    <Link href={href} className="brand brand-logo" aria-label={label}>
-      <StoreLogo size={64} priority />
-      <span><strong>{name}</strong></span>
+    <Link href={href} className="brand brand-logo" aria-label={label} style={{ gap: ".55rem", minWidth: 0 }}>
+      <span
+        aria-hidden="true"
+        style={{
+          width: "52px",
+          height: "52px",
+          display: "grid",
+          placeItems: "center",
+          flex: "0 0 auto",
+          overflow: "hidden",
+          background: "transparent",
+          border: 0,
+        }}
+      >
+        <StoreLogo
+          size={66}
+          priority
+          style={{
+            width: "66px",
+            height: "66px",
+            maxWidth: "none",
+            mixBlendMode: "screen",
+            filter: "brightness(1.08) contrast(1.12) saturate(1.08) drop-shadow(0 0 12px rgba(22, 140, 255, .22))",
+            transform: "scale(1.08)",
+          }}
+        />
+      </span>
+      <span style={{ display: "flex", alignItems: "baseline", gap: ".38rem", minWidth: 0, whiteSpace: "nowrap" }}>
+        <strong
+          style={{
+            fontSize: "clamp(.98rem, 1.4vw, 1.18rem)",
+            fontWeight: 800,
+            letterSpacing: "-.035em",
+            lineHeight: 1,
+            background: "linear-gradient(135deg, #168cff 8%, #50d5ff 92%)",
+            WebkitBackgroundClip: "text",
+            backgroundClip: "text",
+            color: "transparent",
+            textShadow: "0 0 22px rgba(22, 140, 255, .16)",
+          }}
+        >
+          Xvond
+        </strong>
+        <span
+          style={{
+            color: "#dcecff",
+            fontSize: "clamp(.62rem, .85vw, .76rem)",
+            fontWeight: 700,
+            letterSpacing: ".08em",
+            textTransform: "uppercase",
+            opacity: .92,
+          }}
+        >
+          Smart Store
+        </span>
+      </span>
     </Link>
   );
 }
@@ -68,7 +121,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
   return (
     <header className="site-header marketplace-header">
       <div className="header-shell marketplace-header-shell">
-        <StoreBrand href={`/${locale}`} label={`${storeName} home`} name={storeName} />
+        <StoreBrand href={`/${locale}`} label={`${storeName} home`} />
         <form className="search-box marketplace-search" action={`/${locale}/search`}>
           <MagnifyingGlassIcon />
           <input name="q" type="search" placeholder={searchPlaceholder} aria-label={t.search} />
