@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.database import get_session
-from app.models.commerce import Customer, Order, OrderStatus, PaymentStatus
+from app.models.commerce import Order, OrderStatus, PaymentStatus
 from app.models.payment import PaymentAttempt
 from app.services.email import queue_order_event
 from app.services.order_lifecycle import payment_window_open
@@ -71,13 +71,11 @@ async def create_tap_payment(
     settings = get_settings()
     provider = tap_provider()
 
-    # Serialize payment creation per order so two clicks cannot create two Tap charges.
     order = await session.scalar(
         select(Order)
-        .join(Customer)
         .where(
             Order.order_number == order_number.upper(),
-            Customer.email == str(payload.email).lower(),
+            Order.customer_email == str(payload.email).lower(),
         )
         .with_for_update()
     )
@@ -105,11 +103,10 @@ async def create_tap_payment(
             provider_payment_id=existing.provider_payment_id,
         )
 
-    customer = await session.get(Customer, order.customer_id)
-    if customer is None:
-        raise HTTPException(status_code=409, detail="Order customer is unavailable")
     if not settings.tap_webhook_url:
         raise HTTPException(status_code=503, detail="Tap webhook URL is not configured")
+    if not order.customer_name or not order.customer_email:
+        raise HTTPException(status_code=409, detail="Order contact details are incomplete")
 
     return_url = (
         f"{settings.frontend_url.rstrip('/')}/{payload.locale}/order-confirmation"
@@ -123,9 +120,9 @@ async def create_tap_payment(
                 currency=order.currency,
                 return_url=return_url,
                 webhook_url=settings.tap_webhook_url,
-                customer_name=customer.full_name,
-                customer_email=customer.email,
-                customer_phone=customer.phone or "",
+                customer_name=order.customer_name,
+                customer_email=order.customer_email,
+                customer_phone=order.customer_phone or "",
                 locale=payload.locale,
             )
         )
@@ -187,7 +184,6 @@ async def tap_webhook(
     tap_status = str(payload.get("status") or "UNKNOWN").upper()
     was_paid = order.payment_status == PaymentStatus.paid
 
-    # CAPTURED is terminal for the attempt too; ignore delayed lower-state events afterward.
     if attempt.status.upper() != "CAPTURED" or tap_status == "CAPTURED":
         attempt.status = tap_status
 
@@ -197,10 +193,8 @@ async def tap_webhook(
         order.payment_status = PaymentStatus.paid
         if order.status == OrderStatus.pending:
             order.status = OrderStatus.confirmed
-        if not was_paid:
-            customer = await session.get(Customer, order.customer_id)
-            if customer is not None and customer.email:
-                queue_order_event(session, customer.email, order.order_number, "confirmed")
+        if not was_paid and order.customer_email:
+            queue_order_event(session, order.customer_email, order.order_number, "confirmed")
     else:
         order.payment_status = next_payment_status(order.payment_status, tap_status)
 

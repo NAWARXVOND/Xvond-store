@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, Depends
+from fastapi import APIRouter, Cookie, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.accounts import profile
@@ -18,8 +18,11 @@ async def session_status(
     session: Session,
     session_cookie: Annotated[str | None, Cookie(alias=SESSION_COOKIE)] = None,
 ) -> dict[str, object]:
-    """Return a guest-safe session snapshot without using 401 for normal signed-out traffic."""
-    payload = decode_session(session_cookie)
+    """Return a guest-safe session snapshot without 401 for normal signed-out traffic."""
+    try:
+        payload = decode_session(session_cookie)
+    except HTTPException:
+        return {"authenticated": False, "profile": None}
     if payload.get("role") != "customer":
         return {"authenticated": False, "profile": None}
     try:

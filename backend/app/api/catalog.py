@@ -36,11 +36,12 @@ async def list_products(
 ) -> list[Product]:
     statement = (
         select(Product)
+        .join(Category, Category.id == Product.category_id)
         .options(selectinload(Product.variants), selectinload(Product.category))
-        .where(Product.is_active.is_(True))
+        .where(Product.is_active.is_(True), Category.is_active.is_(True))
     )
     if category:
-        statement = statement.join(Category).where(Category.slug == category)
+        statement = statement.where(Category.slug == category)
     if query:
         term = f"%{query.strip()}%"
         statement = statement.where(
@@ -77,8 +78,13 @@ async def list_products(
 async def get_product(slug: str, session: Session) -> Product:
     product = await session.scalar(
         select(Product)
+        .join(Category, Category.id == Product.category_id)
         .options(selectinload(Product.variants), selectinload(Product.category))
-        .where(Product.slug == slug, Product.is_active.is_(True))
+        .where(
+            Product.slug == slug,
+            Product.is_active.is_(True),
+            Category.is_active.is_(True),
+        )
     )
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
@@ -92,8 +98,10 @@ async def search_suggestions(
     term = f"%{q.strip()}%"
     result = await session.scalars(
         select(func.coalesce(Product.name_ar, Product.name_en))
+        .join(Category, Category.id == Product.category_id)
         .where(
             Product.is_active.is_(True),
+            Category.is_active.is_(True),
             or_(Product.name_ar.ilike(term), Product.name_en.ilike(term)),
         )
         .limit(8)

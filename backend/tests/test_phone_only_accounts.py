@@ -20,12 +20,19 @@ def test_phone_only_profile_is_valid() -> None:
     assert profile.phone == "+96891234567"
 
 
-def test_legacy_phone_verify_alias_uses_phone_only_flow() -> None:
-    verify_routes = [
+def test_phone_only_router_keeps_confirm_without_legacy_verify_alias() -> None:
+    confirm_routes = [
+        route
+        for route in phone_router.routes
+        if getattr(route, "path", None) == "/auth/phone/confirm"
+        and "POST" in getattr(route, "methods", set())
+    ]
+    legacy_verify_routes = [
         route
         for route in phone_router.routes
         if getattr(route, "path", None) == "/auth/phone/verify"
         and "POST" in getattr(route, "methods", set())
     ]
-    assert verify_routes
-    assert verify_routes[0].endpoint is phone_confirm
+    assert confirm_routes
+    assert confirm_routes[0].endpoint is phone_confirm
+    assert legacy_verify_routes == []

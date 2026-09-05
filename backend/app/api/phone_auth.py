@@ -24,7 +24,6 @@ class PhoneConfirmRequest(BaseModel):
 
 
 @router.post("/phone/confirm")
-@router.post("/phone/verify", include_in_schema=False)
 async def phone_confirm(
     payload: PhoneConfirmRequest,
     response: Response,

@@ -12,7 +12,7 @@ from sqlalchemy.orm import selectinload
 from app.core.config import get_settings
 from app.core.database import get_session
 from app.core.security import require_admin
-from app.models.commerce import Customer, Order, OrderStatus, PaymentStatus
+from app.models.commerce import Order, OrderStatus, PaymentStatus
 from app.models.integrations import Shipment, ShipmentEvent
 
 router = APIRouter(tags=["courier"])
@@ -68,19 +68,27 @@ def shipment_payload(shipment: Shipment) -> dict[str, object]:
     }
 
 
+def is_duplicate_event(shipment: Shipment, payload: ShipmentEventWrite) -> bool:
+    return any(
+        event.event_code == payload.event_code
+        and event.occurred_at == payload.occurred_at
+        and event.raw_reference == payload.raw_reference
+        for event in shipment.events
+    )
+
+
 async def apply_event(
     session: AsyncSession,
     shipment: Shipment,
     payload: ShipmentEventWrite,
 ) -> None:
+    if is_duplicate_event(shipment, payload):
+        return
+
     order = await session.get(Order, shipment.order_id)
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
-    if payload.shipment_status:
-        shipment.status = payload.shipment_status
-    if payload.cod_status:
-        shipment.cod_status = payload.cod_status
-    shipment.last_event_at = payload.occurred_at
+
     session.add(
         ShipmentEvent(
             shipment_id=shipment.id,
@@ -92,6 +100,17 @@ async def apply_event(
             raw_reference=payload.raw_reference,
         )
     )
+
+    # Store the complete event history, but only let the newest event advance the
+    # current shipment/order state. Courier webhooks can arrive out of order.
+    if shipment.last_event_at is not None and payload.occurred_at < shipment.last_event_at:
+        return
+
+    if payload.shipment_status:
+        shipment.status = payload.shipment_status
+    if payload.cod_status:
+        shipment.cod_status = payload.cod_status
+    shipment.last_event_at = payload.occurred_at
 
     normalized = (payload.shipment_status or payload.event_code).lower()
     if (
@@ -194,9 +213,10 @@ async def public_shipment_tracking(
     email: Annotated[str, Query(min_length=5, max_length=320)],
 ) -> dict[str, object]:
     order = await session.scalar(
-        select(Order)
-        .join(Customer)
-        .where(Order.order_number == order_number.upper(), Customer.email == email.lower())
+        select(Order).where(
+            Order.order_number == order_number.upper(),
+            Order.customer_email == email.lower(),
+        )
     )
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
