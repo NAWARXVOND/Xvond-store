@@ -1,0 +1,1 @@
+Decorative category artwork for the Xvond Smart Store storefront. These assets are visual category illustrations, not sellable product images.
