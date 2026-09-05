@@ -15,6 +15,7 @@ type IdentifyResult = {
   existing: boolean;
   next_action: "password" | "register" | "phone_otp" | "phone_unavailable";
 };
+type SessionResult = { authenticated: boolean; profile?: Profile | null };
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
 
@@ -40,16 +41,24 @@ export function AccountView({ locale }: { locale: Locale }) {
 
   const load = useCallback(async () => {
     try {
-      const me = await request("/account/me") as Profile;
+      const session = await request("/auth/session") as SessionResult;
+      if (!session.authenticated || !session.profile) {
+        setProfile(null);
+        setAddresses([]);
+        setOrders([]);
+        return;
+      }
       const [savedAddresses, savedOrders] = await Promise.all([
         request("/account/addresses"),
         request("/account/orders"),
       ]);
-      setProfile(me);
+      setProfile(session.profile);
       setAddresses(savedAddresses as Address[]);
       setOrders(savedOrders as Order[]);
     } catch {
       setProfile(null);
+      setAddresses([]);
+      setOrders([]);
     }
   }, [request]);
 
@@ -95,7 +104,7 @@ export function AccountView({ locale }: { locale: Locale }) {
         setMessage(ar ? "الدخول برقم الهاتف غير مفعّل حاليًا." : "Phone sign-in is not enabled yet.");
       }
     } catch {
-      setMessage(ar ? "أدخل بريدًا إلكترونيًا أو رقمًا عُمانيًا صحيحًا." : "Enter a valid email or Oman phone number.");
+      setMessage(ar ? "أدخل بريدًا إلكترونيًا أو رقم هاتف صحيحًا." : "Enter a valid email or phone number.");
     } finally {
       setBusy(false);
     }
@@ -139,10 +148,7 @@ export function AccountView({ locale }: { locale: Locale }) {
     try {
       await request("/auth/phone/confirm", {
         method: "POST",
-        body: JSON.stringify({
-          phone: identifier,
-          code: data.get("code"),
-        }),
+        body: JSON.stringify({ phone: identifier, code: data.get("code") }),
       });
       await load();
       window.dispatchEvent(new Event("xvond-account-changed"));
@@ -205,56 +211,40 @@ export function AccountView({ locale }: { locale: Locale }) {
       <div>
         <p className="eyebrow">XVOND MEMBERS</p>
         <h1>{ar ? "تسجيل الدخول أو إنشاء حساب" : "Sign in or create an account"}</h1>
-
         {stage === "identifier" && <form onSubmit={(event) => void identify(event)}>
           <label>
             {ar ? "البريد الإلكتروني أو رقم الهاتف" : "Email or phone number"}
-            <input
-              name="identifier"
-              autoComplete="username"
-              placeholder={ar ? "البريد الإلكتروني أو رقم عُماني" : "Email or Oman phone number"}
-              required
-            />
+            <input name="identifier" autoComplete="username" placeholder={ar ? "البريد الإلكتروني أو رقم الهاتف" : "Email or phone number"} required />
           </label>
           {message && <p className="form-error">{message}</p>}
           <button className="primary-button" disabled={busy}>{ar ? "متابعة" : "Continue"}</button>
         </form>}
-
         {(stage === "password" || stage === "register") && <form onSubmit={(event) => void submitEmail(event)}>
           <p className="coupon-message">{identifier}</p>
           <h2>{stage === "password" ? (ar ? "أدخل كلمة المرور" : "Enter your password") : (ar ? "أنت مستخدم جديد" : "You’re new here")}</h2>
           {stage === "register" && <p>{ar ? "أنشئ كلمة مرور لإكمال حسابك." : "Create a password to finish setting up your account."}</p>}
-          <label>
-            {ar ? "كلمة المرور" : "Password"}
-            <input name="password" type="password" autoComplete={stage === "password" ? "current-password" : "new-password"} minLength={stage === "register" ? 10 : 1} required />
-          </label>
+          <label>{ar ? "كلمة المرور" : "Password"}<input name="password" type="password" autoComplete={stage === "password" ? "current-password" : "new-password"} minLength={stage === "register" ? 10 : 1} required /></label>
           {message && <p className="form-error">{message}</p>}
           <button className="primary-button" disabled={busy}>{stage === "password" ? (ar ? "تسجيل الدخول" : "Sign in") : (ar ? "إنشاء الحساب" : "Create account")}</button>
           {stage === "password" && <Link className="text-button" href={`/${locale}/account/reset`}>{ar ? "نسيت كلمة المرور؟" : "Forgot password?"}</Link>}
           <button className="text-button" type="button" onClick={resetAuth}>{ar ? "استخدام بريد أو رقم آخر" : "Use another email or phone"}</button>
         </form>}
-
         {stage === "phone_code" && <form onSubmit={(event) => void verifyPhone(event)}>
           <p className="coupon-message">{identifier}</p>
           <h2>{ar ? "أدخل رمز التحقق" : "Enter verification code"}</h2>
           <p>{ar ? "أدخل الرمز الذي أرسلناه إلى رقم هاتفك. إذا كان الرقم جديدًا سننشئ الحساب تلقائيًا." : "Enter the code sent to your phone. If this number is new, your account will be created automatically."}</p>
-          <label>
-            {ar ? "رمز التحقق" : "Verification code"}
-            <input name="code" inputMode="numeric" autoComplete="one-time-code" required />
-          </label>
+          <label>{ar ? "رمز التحقق" : "Verification code"}<input name="code" inputMode="numeric" autoComplete="one-time-code" required /></label>
           {message && <p className="coupon-message">{message}</p>}
           <button className="primary-button" disabled={busy}>{ar ? "تأكيد والمتابعة" : "Verify and continue"}</button>
           <button className="text-button" type="button" disabled={busy} onClick={() => void resendPhoneCode()}>{ar ? "إعادة إرسال الرمز" : "Resend code"}</button>
           <button className="text-button" type="button" onClick={resetAuth}>{ar ? "استخدام بريد أو رقم آخر" : "Use another email or phone"}</button>
         </form>}
-
         {stage === "identifier" && <MultiAuthOptions locale={locale} />}
       </div>
     </main>;
   }
 
   const accountLabel = profile.email || profile.phone || (ar ? "عضو Xvond" : "Xvond member");
-
   return <main className="content-page shell account-page">
     <header><div><p className="eyebrow">XVOND MEMBERS</p><h1>{ar ? `أهلًا، ${profile.full_name}` : `Welcome, ${profile.full_name}`}</h1><p>{accountLabel}</p>{message && <small>{message}</small>}</div><button className="secondary-button" onClick={() => void logout()}>{ar ? "تسجيل الخروج" : "Sign out"}</button></header>
     <section><h2>{ar ? "عناويني" : "My addresses"}</h2><form className="account-address-form" action={addAddress}><input name="label" placeholder={ar ? "اسم العنوان: المنزل" : "Label: Home"} defaultValue="home" required /><input name="governorate" placeholder={ar ? "المحافظة" : "Governorate"} required /><input name="city" placeholder={ar ? "المدينة" : "City"} required /><input name="address_line" placeholder={ar ? "العنوان بالتفصيل" : "Full address"} required /><input name="postal_code" placeholder={ar ? "الرمز البريدي (اختياري)" : "Postal code (optional)"} /><button className="primary-button">{ar ? "حفظ العنوان" : "Save address"}</button></form><div className="account-cards">{addresses.map((address) => <article key={address.id}><strong>{address.label}</strong><p>{address.governorate} — {address.city}</p><small>{address.address_line}</small><button className="danger-link" onClick={() => void removeAddress(address.id)}>{ar ? "حذف" : "Remove"}</button></article>)}</div></section>

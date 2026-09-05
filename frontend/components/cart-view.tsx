@@ -7,7 +7,7 @@ import { MinusIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { formatPrice } from "@/lib/catalog";
 import type { Locale } from "@/lib/i18n";
 import { appendStoreContext, storeForCategorySlug } from "@/lib/store-context";
-import { useCommerce } from "./commerce-provider";
+import { cartLineKey, useCommerce } from "./commerce-provider";
 
 export function CartView({ locale }: { locale: Locale }) {
   const { cart, removeFromCart, updateQuantity } = useCommerce();
@@ -28,13 +28,18 @@ export function CartView({ locale }: { locale: Locale }) {
         <div className="cart-layout">
           <div className="cart-lines">
             {cart.map(({ product, quantity }) => {
+              const lineKey = cartLineKey(product);
               const productHref = appendStoreContext(`/${locale}/product/${product.slug}`, storeForCategorySlug(product.category));
               return (
-                <article className="cart-line" key={product.slug}>
+                <article className="cart-line" key={lineKey}>
                   <div className="cart-thumb"><Image src={product.image} alt={product.name[locale]} fill sizes="100px" /></div>
-                  <div className="cart-line-copy"><Link href={productHref}>{product.name[locale]}</Link><strong>{formatPrice(product.price, locale)}</strong></div>
-                  <div className="quantity-control"><button onClick={() => updateQuantity(product.slug, quantity - 1)} aria-label={ar ? "تقليل الكمية" : "Decrease quantity"}><MinusIcon /></button><span>{quantity}</span><button onClick={() => updateQuantity(product.slug, quantity + 1)} aria-label={ar ? "زيادة الكمية" : "Increase quantity"}><PlusIcon /></button></div>
-                  <button className="remove-button" onClick={() => removeFromCart(product.slug)} aria-label={ar ? "حذف المنتج" : "Remove product"}><TrashIcon /></button>
+                  <div className="cart-line-copy">
+                    <Link href={productHref}>{product.name[locale]}</Link>
+                    {product.variantTitle && <small>{product.variantTitle[locale]}</small>}
+                    <strong>{formatPrice(product.price, locale)}</strong>
+                  </div>
+                  <div className="quantity-control"><button onClick={() => updateQuantity(lineKey, quantity - 1)} aria-label={ar ? "تقليل الكمية" : "Decrease quantity"}><MinusIcon /></button><span>{quantity}</span><button onClick={() => updateQuantity(lineKey, quantity + 1)} aria-label={ar ? "زيادة الكمية" : "Increase quantity"}><PlusIcon /></button></div>
+                  <button className="remove-button" onClick={() => removeFromCart(lineKey)} aria-label={ar ? "حذف المنتج" : "Remove product"}><TrashIcon /></button>
                 </article>
               );
             })}

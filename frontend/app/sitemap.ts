@@ -1,10 +1,22 @@
 import type { MetadataRoute } from "next";
 import { getCategories, getProducts } from "@/lib/catalog";
+import type { Product } from "@/lib/catalog";
 import { storeForCategorySlug } from "@/lib/store-context";
 import { absoluteUrl } from "@/lib/urls";
 
+async function allProducts(): Promise<Product[]> {
+  const pageSize = 100;
+  const products: Product[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await getProducts({ limit: pageSize, offset });
+    products.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return products;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [categories, products] = await Promise.all([getCategories(), getProducts({ limit: 100 })]);
+  const [categories, products] = await Promise.all([getCategories(), allProducts()]);
   const locales = ["ar", "en"] as const;
   const publicCategories = categories.filter((category) => Boolean(storeForCategorySlug(category.slug)));
   const publicProducts = products.filter((product) => Boolean(storeForCategorySlug(product.category)));

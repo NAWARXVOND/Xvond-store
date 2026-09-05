@@ -1,9 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
 import { storeForPath } from "@/lib/store-context";
+
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 export function StoreFooter({ locale }: { locale: Locale }) {
   const pathname = usePathname();
@@ -19,7 +22,7 @@ export function StoreFooter({ locale }: { locale: Locale }) {
   return (
     <footer className="footer">
       <div className="footer-brand">
-        <span className="brand-mark">X</span>
+        <Image src={`${basePath}/xvond-store-logo.svg`} alt="Xvond Store" width={142} height={38} />
         <div><strong>{storeName}</strong><p>Xvond Store</p></div>
       </div>
       <div className="footer-links">
@@ -29,7 +32,6 @@ export function StoreFooter({ locale }: { locale: Locale }) {
         <Link href={`/${locale}/returns`}>{ar ? "الاسترجاع والتبديل" : "Returns & Exchanges"}</Link>
       </div>
       <p className="copyright">© {new Date().getFullYear()} Xvond Store</p>
-      <p className="copyright">{ar ? "الجهة القانونية: مادلين للاستثمار · سجل تجاري 1655015 · المعبيلة الجنوبية، السيب، مسقط" : "Legal entity: Madlin For Investment · CR 1655015 · South Al Mabilah, Al Seeb, Muscat"}</p>
     </footer>
   );
 }

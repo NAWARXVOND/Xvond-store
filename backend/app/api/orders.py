@@ -1,4 +1,6 @@
 import secrets
+import uuid
+from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated
@@ -10,7 +12,16 @@ from sqlalchemy.orm import selectinload
 
 from app.core.config import get_settings
 from app.core.database import get_session
-from app.models.commerce import Address, Coupon, Customer, Discount, Order, OrderItem, Product
+from app.models.commerce import (
+    Address,
+    Coupon,
+    Customer,
+    Discount,
+    Order,
+    OrderItem,
+    Product,
+    ProductVariant,
+)
 from app.models.shipping import ShippingRate
 from app.schemas.orders import (
     CheckoutCreate,
@@ -48,7 +59,37 @@ async def load_products(
     by_slug = {product.slug: product for product in products}
     if set(by_slug) != slugs:
         raise HTTPException(status_code=400, detail="One or more products are unavailable")
+
+    if lock and products:
+        # selectinload uses a separate query, so lock the inventory rows explicitly.
+        product_ids = [product.id for product in products]
+        await session.scalars(
+            select(ProductVariant)
+            .where(ProductVariant.product_id.in_(product_ids))
+            .order_by(ProductVariant.id)
+            .with_for_update()
+        )
     return by_slug
+
+
+def selected_variant(requested: CheckoutItem, product: Product) -> ProductVariant:
+    if requested.variant_id is not None:
+        variant = next(
+            (item for item in product.variants if item.id == requested.variant_id),
+            None,
+        )
+        if variant is None:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Variant does not belong to {product.slug}",
+            )
+        return variant
+    if len(product.variants) == 1:
+        return product.variants[0]
+    raise HTTPException(
+        status_code=422,
+        detail=f"A variant must be selected for {product.slug}",
+    )
 
 
 def line_totals(
@@ -56,17 +97,25 @@ def line_totals(
 ) -> tuple[Decimal, dict[str, Decimal]]:
     subtotal = Decimal("0.000")
     totals: dict[str, Decimal] = {}
+    requested_by_variant: dict[uuid.UUID, int] = defaultdict(int)
+    variants: dict[uuid.UUID, tuple[Product, ProductVariant]] = {}
+
     for requested in items:
         product = products[requested.product_slug]
-        available = [variant for variant in product.variants if variant.stock_quantity > 0]
-        if not available:
-            raise HTTPException(status_code=409, detail=f"{product.slug} is out of stock")
-        variant = available[0]
-        if variant.stock_quantity < requested.quantity:
-            raise HTTPException(status_code=409, detail=f"Insufficient stock for {product.slug}")
+        variant = selected_variant(requested, product)
+        requested_by_variant[variant.id] += requested.quantity
+        variants[variant.id] = (product, variant)
         total = variant.price * requested.quantity
-        totals[product.slug] = total
+        totals[product.slug] = totals.get(product.slug, Decimal("0.000")) + total
         subtotal += total
+
+    for variant_id, quantity in requested_by_variant.items():
+        product, variant = variants[variant_id]
+        if variant.stock_quantity < quantity:
+            if variant.stock_quantity <= 0:
+                raise HTTPException(status_code=409, detail=f"{product.slug} variant is out of stock")
+            raise HTTPException(status_code=409, detail=f"Insufficient stock for {product.slug} variant")
+
     return subtotal, totals
 
 
@@ -157,7 +206,6 @@ async def calculate_quote(
                 ShippingRate.is_active.is_(True),
             )
         )
-        shipping_total = Decimal("0.000")
     return products, subtotal, discount, promotion, coupon, rate, shipping_total
 
 
@@ -211,11 +259,7 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
         )
     customer = email_customer or phone_customer
     if customer is None:
-        customer = Customer(
-            email=email,
-            phone=phone,
-            full_name=payload.customer.fullName,
-        )
+        customer = Customer(email=email, phone=phone, full_name=payload.customer.fullName)
         session.add(customer)
         await session.flush()
     else:
@@ -234,10 +278,11 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
             address_line=payload.customer.addressLine,
         )
     )
+
     lines: list[OrderItem] = []
     for requested in payload.items:
         product = products[requested.product_slug]
-        variant = next(item for item in product.variants if item.stock_quantity > 0)
+        variant = selected_variant(requested, product)
         variant.stock_quantity -= requested.quantity
         line_total = variant.price * requested.quantity
         lines.append(
@@ -251,6 +296,7 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
                 line_total=line_total,
             )
         )
+
     if coupon is not None and promotion == coupon.code:
         coupon.usage_count += 1
 
