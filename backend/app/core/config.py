@@ -107,6 +107,9 @@ class Settings(BaseSettings):
             raise ValueError("Production SMTP configuration is required")
         if not self.frontend_url.startswith("https://"):
             raise ValueError("Production FRONTEND_URL must use HTTPS")
+        origins = self.cors_origin_list
+        if not origins or "*" in origins or any(not origin.startswith("https://") for origin in origins):
+            raise ValueError("Production CORS_ORIGINS must contain explicit HTTPS origins only")
         if self.tap_enabled:
             if not all((self.tap_secret_key, self.tap_merchant_id, self.tap_webhook_url)):
                 raise ValueError("Tap is enabled but TAP_SECRET_KEY, TAP_MERCHANT_ID or TAP_WEBHOOK_URL is missing")
