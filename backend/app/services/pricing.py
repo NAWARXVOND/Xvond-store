@@ -1,7 +1,7 @@
 from decimal import Decimal
 
-# Madlin For Investment is not currently VAT-registered. Store prices are final
-# customer prices and no VAT is charged or represented until registration is enabled.
+# The Store is not currently configured to collect VAT. Prices are treated as
+# final customer prices until VAT registration/tax configuration is enabled.
 STORE_VAT_RATE = Decimal("0.00")
 OMR_QUANTUM = Decimal("0.001")
 
