@@ -270,16 +270,17 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
             detail="Email and phone belong to different customer accounts",
         )
 
-    customer = email_customer or phone_customer
-    customer_was_created = customer is None
-    if customer is None:
+    customer: Customer | None = None
+    customer_was_created = False
+    if email_customer is not None and phone_customer is not None:
+        customer = email_customer
+    elif email_customer is None and phone_customer is None:
         customer = Customer(email=email, phone=phone, full_name=payload.customer.fullName)
         session.add(customer)
         await session.flush()
+        customer_was_created = True
 
-    # Guest checkout must never alter authentication/profile identifiers on an
-    # existing account. The order keeps its own immutable contact/address copy.
-    if customer_was_created:
+    if customer_was_created and customer is not None:
         session.add(
             Address(
                 customer_id=customer.id,
@@ -320,7 +321,7 @@ async def create_order(payload: CheckoutCreate, session: Session) -> Order:
     tax_total = included_vat(merchandise_total)
     order = Order(
         order_number=new_order_number(),
-        customer_id=customer.id,
+        customer_id=customer.id if customer is not None else None,
         customer_name=payload.customer.fullName,
         customer_email=email,
         customer_phone=phone,
@@ -353,9 +354,10 @@ async def track_order(
     email: Annotated[str, Query(min_length=5, max_length=320)],
 ) -> Order:
     order = await session.scalar(
-        select(Order)
-        .join(Customer)
-        .where(Order.order_number == order_number.upper(), Customer.email == email)
+        select(Order).where(
+            Order.order_number == order_number.upper(),
+            Order.customer_email == email.lower(),
+        )
     )
     if order is None:
         raise HTTPException(status_code=404, detail="Order not found")
