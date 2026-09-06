@@ -102,9 +102,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   />
                   <span className={styles.categoryShade} aria-hidden="true" />
                   <span className={styles.categoryCopy}>
-                    <Icon />
+                    <Icon style={{ gridRow: 1 }} />
                     <strong>{category.label[locale]}</strong>
-                    <b aria-hidden="true">›</b>
+                    <b aria-hidden="true" style={{ gridRow: 1 }}>›</b>
                   </span>
                 </span>
               </Link>
