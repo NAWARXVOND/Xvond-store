@@ -104,7 +104,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   <span className={styles.categoryCopy}>
                     <Icon />
                     <strong>{category.label[locale]}</strong>
-                    <small>{category.description[locale]}</small>
                     <b aria-hidden="true">›</b>
                   </span>
                 </span>

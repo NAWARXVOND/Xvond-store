@@ -117,6 +117,7 @@ button, input { font: inherit; }
 .footer-brand p { margin: .25rem 0 0; color: var(--muted); font-size: .75rem; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 1.5rem; margin: 2rem 0; color: #b7c4d5; font-size: .78rem; }
 .copyright { color: #647186; font-size: .68rem; }
+.footer-credit { margin: 1rem 0 0; color: rgba(183, 196, 213, .1); font-size: .6rem; text-align: center; letter-spacing: .04em; }
 
 .content-page { min-height: 65vh; padding-block: 3rem 6rem; }
 .content-page h1 { margin: 0 0 2rem; font-size: clamp(2rem, 5vw, 4rem); }

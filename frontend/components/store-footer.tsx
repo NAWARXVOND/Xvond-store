@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
 
+// NAWAR
 export function StoreFooter({ locale }: { locale: Locale }) {
   const pathname = usePathname();
   const ar = locale === "ar";
@@ -27,6 +28,7 @@ export function StoreFooter({ locale }: { locale: Locale }) {
         <Link href={`/${locale}/returns`}>{ar ? "الاسترجاع والتبديل" : "Returns & Exchanges"}</Link>
       </div>
       <p className="copyright">© {new Date().getFullYear()} Xvond Smart Store</p>
+      <p className="footer-credit" dir="ltr">Powerd by nawar</p>
     </footer>
   );
 }
