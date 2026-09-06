@@ -101,10 +101,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     className={styles.categoryImage}
                   />
                   <span className={styles.categoryShade} aria-hidden="true" />
-                  <span className={styles.categoryCopy}>
-                    <Icon style={{ gridRow: 1 }} />
-                    <strong>{category.label[locale]}</strong>
-                    <b aria-hidden="true" style={{ gridRow: 1 }}>›</b>
+                  <span className={styles.categoryCopy} style={{ display: "flex", alignItems: "center", gap: ".42rem" }}>
+                    <Icon style={{ gridRow: 1, flexShrink: 0 }} />
+                    <strong style={{ flex: 1 }}>{category.label[locale]}</strong>
+                    <b aria-hidden="true" style={{ gridRow: 1, marginInlineStart: "auto" }}>›</b>
                   </span>
                 </span>
               </Link>
