@@ -88,11 +88,11 @@
 .categoryImage { object-fit:cover; transition:transform .35s ease,filter .35s ease; }
 .categoryTile:hover .categoryImage { transform:scale(1.045); filter:brightness(1.07) saturate(1.08); }
 .categoryShade { position:absolute; inset:0; background:linear-gradient(180deg,rgba(2,6,13,.02) 28%,rgba(2,6,13,.72) 66%,rgba(2,6,13,.96) 100%); }
-.categoryCopy { position:absolute; z-index:2; inset-inline:.72rem; bottom:.62rem; display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:.16rem .42rem; }
-.categoryCopy svg { grid-row:1 / span 2; width:20px; color:#32bdff; filter:drop-shadow(0 0 7px rgba(80,213,255,.45)); }
+.categoryCopy { position:absolute; z-index:2; inset-inline:.72rem; bottom:.62rem; display:flex; align-items:center; gap:.42rem; }
+.categoryCopy svg { flex:0 0 auto; width:20px; color:#32bdff; filter:drop-shadow(0 0 7px rgba(80,213,255,.45)); }
 .categoryCopy strong { font-size:.76rem; line-height:1.2; }
-.categoryCopy small { grid-column:2; max-width:100%; overflow:hidden; color:#aab9cd; font-size:.54rem; line-height:1.35; text-overflow:ellipsis; white-space:nowrap; }
-.categoryCopy b { grid-column:3; grid-row:1 / span 2; color:#fff; font-size:1rem; }
+.categoryCopy small { display:none; }
+.categoryCopy b { margin-inline-start:auto; color:#fff; font-size:1rem; }
 
 .productsSection { padding-top:1rem; }
 .productsGrid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.7rem; }
