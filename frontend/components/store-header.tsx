@@ -116,7 +116,7 @@ export function StoreHeader({ locale }: { locale: Locale }) {
             )}
           </Link>
           <Link href={wishlistHref} className="header-tool"><HeartIcon /><span>{t.wishlist}</span></Link>
-          <Link href={cartHref} className="header-tool cart-link" aria-label={t.cart}><ShoppingBagIcon /><span>{ar ? "السلة" : "Cart"}</span><b>{cartCount}</b></Link>
+          <Link href={cartHref} className="header-tool cart-link" aria-label={t.cart}><ShoppingBagIcon /><b>{cartCount}</b></Link>
         </nav>
       </div>
 
