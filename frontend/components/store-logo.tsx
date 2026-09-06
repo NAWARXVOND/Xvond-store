@@ -13,7 +13,7 @@ type StoreLogoProps = {
 export function StoreLogo({ size = 96, priority = false, className = "", style }: StoreLogoProps) {
   return (
     <Image
-      src={`${basePath}/xvond-store-logo.png`}
+      src={`${basePath}/assets/logo.png`}
       alt="Xvond Smart Store"
       width={size}
       height={size}

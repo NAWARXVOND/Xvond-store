@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { BoltIcon, CubeIcon, GiftIcon, PuzzlePieceIcon, SparklesIcon, TruckIcon } from "@heroicons/react/24/outline";
 import { ProductCard } from "@/components/product-card";
 import { getCategories, getProducts } from "@/lib/catalog";
-import { xvondHeroImage } from "@/lib/hero-data";
 import { isLocale } from "@/lib/i18n";
 import { absoluteUrl } from "@/lib/urls";
 import styles from "./store-channel.module.css";
@@ -55,11 +54,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         aria-label={ar ? "تسوّق أحدث منتجات Xvond Smart Store" : "Shop the latest Xvond Smart Store products"}
       >
         <Image
-          src={xvondHeroImage}
+          src={`${basePath}/assets/hero.png`}
           alt={ar ? "Xvond Smart Store - تقنية ومنتجات ذكية ومنتجات إلكترونية للنساء" : "Xvond Smart Store - smart technology, lifestyle products and women-focused electronics"}
           fill
           priority
-          unoptimized
           sizes="100vw"
           className={styles.heroBannerImage}
         />
