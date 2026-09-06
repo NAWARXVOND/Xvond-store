@@ -1,0 +1,1 @@
+This directory contains the public storefront hero asset.
