@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BoltIcon, CheckBadgeIcon, CubeIcon, GiftIcon, PuzzlePieceIcon, ShieldCheckIcon, SparklesIcon, TruckIcon } from "@heroicons/react/24/outline";
+import { BoltIcon, CubeIcon, GiftIcon, PuzzlePieceIcon, SparklesIcon, TruckIcon } from "@heroicons/react/24/outline";
 import { ProductCard } from "@/components/product-card";
 import { getCategories, getProducts } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
@@ -46,57 +46,22 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
   const [categories, products] = await Promise.all([getCategories(), getProducts({ sort: "newest", limit: 12 })]);
 
-  const heroProducts = products.filter((product) => !product.image.includes("product-placeholder.svg")).slice(0, 5);
-  const heroItems = heroProducts.length
-    ? heroProducts.map((product) => ({
-        key: product.id,
-        src: product.image,
-        alt: product.name[locale],
-        href: `/${locale}/product/${product.slug}`,
-      }))
-    : categories.slice(0, 5).map((category) => ({
-        key: category.id,
-        src: `${basePath}${categoryArtwork[category.slug] ?? "/category-art/electronics.svg"}`,
-        alt: category.label[locale],
-        href: `/${locale}/category/${category.slug}`,
-      }));
-
   return (
     <main className={styles.page}>
-      <section className={styles.heroSection}>
-        <div className={styles.heroGlow} aria-hidden="true" />
-        <div className={styles.heroContent}>
-          <p className={styles.heroEyebrow}>{ar ? "اختيارات أذكى · يوم أفضل" : "SMARTER CHOICES · A BRIGHTER TOMORROW"}</p>
-          <h1>
-            {ar ? (
-              <>الابتكار <span>يعيش هنا</span></>
-            ) : (
-              <>Innovation <span>lives here</span></>
-            )}
-          </h1>
-          <p className={styles.heroSubline}>{ar ? "منتجات ذكية · أسلوب عصري · تجربة أذكى" : "Smart products · Modern lifestyle · A smarter you"}</p>
-          <Link href={`/${locale}/new-arrivals`} className={styles.heroCta}>
-            {ar ? "تسوّق الآن" : "Shop now"}
-            <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-
-        <div className={styles.heroVisual} aria-label={ar ? "منتجات مختارة من المتجر" : "Selected store products"}>
-          <div className={styles.heroRing} aria-hidden="true" />
-          {heroItems.map((item, index) => (
-            <Link key={item.key} href={item.href} className={`${styles.heroProduct} ${styles[`heroProduct${index + 1}`]}`}>
-              <Image src={item.src} alt={item.alt} fill sizes="(max-width: 780px) 42vw, 24vw" className={styles.heroProductImage} priority={index < 2} />
-            </Link>
-          ))}
-          <div className={styles.heroBase} aria-hidden="true" />
-        </div>
-      </section>
-
-      <section className={styles.trustStrip} aria-label={ar ? "مزايا المتجر" : "Store benefits"}>
-        <div><TruckIcon /><span><strong>{ar ? "توصيل مجاني" : "Free Shipping"}</strong><small>{ar ? "داخل سلطنة عُمان" : "Across Oman"}</small></span></div>
-        <div><ShieldCheckIcon /><span><strong>{ar ? "دفع آمن" : "Secure Payment"}</strong><small>{ar ? "حماية للطلب والبيانات" : "Protected checkout"}</small></span></div>
-        <div><CheckBadgeIcon /><span><strong>{ar ? "جودة مختارة" : "Premium Quality"}</strong><small>{ar ? "منتجات مختارة بعناية" : "Curated for you"}</small></span></div>
-      </section>
+      <Link
+        href={`/${locale}/new-arrivals`}
+        className={styles.heroBanner}
+        aria-label={ar ? "تسوّق أحدث منتجات Xvond Smart Store" : "Shop the latest Xvond Smart Store products"}
+      >
+        <Image
+          src={`${basePath}/hero/xvond-smart-store-hero.svg`}
+          alt={ar ? "Xvond Smart Store - تقنية ومنتجات ذكية ومنتجات إلكترونية للنساء" : "Xvond Smart Store - smart technology, lifestyle products and women-focused electronics"}
+          fill
+          priority
+          sizes="100vw"
+          className={styles.heroBannerImage}
+        />
+      </Link>
 
       <section id="categories" className={styles.categoriesSection} aria-labelledby="categories-title">
         <div className={styles.sectionHeading}>
