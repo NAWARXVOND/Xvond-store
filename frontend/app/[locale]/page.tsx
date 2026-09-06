@@ -5,6 +5,11 @@ import { notFound } from "next/navigation";
 import { BoltIcon, CubeIcon, GiftIcon, PuzzlePieceIcon, SparklesIcon, TruckIcon } from "@heroicons/react/24/outline";
 import { ProductCard } from "@/components/product-card";
 import { getCategories, getProducts } from "@/lib/catalog";
+import heroPart1 from "@/lib/hero-data/part1";
+import heroPart2 from "@/lib/hero-data/part2";
+import heroPart3 from "@/lib/hero-data/part3";
+import heroPart4 from "@/lib/hero-data/part4";
+import heroPart5 from "@/lib/hero-data/part5";
 import { isLocale } from "@/lib/i18n";
 import { absoluteUrl } from "@/lib/urls";
 import styles from "./store-channel.module.css";
@@ -26,6 +31,8 @@ const categoryArtwork: Record<string, string> = {
   "luxury-gifts": "/category-art/luxury-gifts.svg",
   "xvond-box": "/category-art/xvond-box.svg",
 };
+
+const heroImage = `data:image/jpeg;base64,${heroPart1}${heroPart2}${heroPart3}${heroPart4}${heroPart5}`;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
@@ -54,10 +61,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         aria-label={ar ? "تسوّق أحدث منتجات Xvond Smart Store" : "Shop the latest Xvond Smart Store products"}
       >
         <Image
-          src={`${basePath}/hero/xvond-smart-store-hero.svg`}
+          src={heroImage}
           alt={ar ? "Xvond Smart Store - تقنية ومنتجات ذكية ومنتجات إلكترونية للنساء" : "Xvond Smart Store - smart technology, lifestyle products and women-focused electronics"}
           fill
           priority
+          unoptimized
           sizes="100vw"
           className={styles.heroBannerImage}
         />
