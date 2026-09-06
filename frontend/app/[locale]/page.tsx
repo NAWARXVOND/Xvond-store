@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BoltIcon, CubeIcon, GiftIcon, PuzzlePieceIcon, SparklesIcon, TruckIcon } from "@heroicons/react/24/outline";
+import { BoltIcon, CubeIcon, GiftIcon, PuzzlePieceIcon, ShieldCheckIcon, SparklesIcon, TruckIcon } from "@heroicons/react/24/outline";
 import { ProductCard } from "@/components/product-card";
 import { getCategories, getProducts } from "@/lib/catalog";
 import { isLocale } from "@/lib/i18n";
@@ -48,20 +48,37 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <main className={styles.page}>
-      <Link
-        href={`/${locale}/new-arrivals`}
+      <section
         className={styles.heroBanner}
-        aria-label={ar ? "تسوّق أحدث منتجات Xvond Smart Store" : "Shop the latest Xvond Smart Store products"}
+        aria-labelledby="hero-title"
       >
         <Image
-          src={`${basePath}/assets/hero.png`}
-          alt={ar ? "Xvond Smart Store - تقنية ومنتجات ذكية ومنتجات إلكترونية للنساء" : "Xvond Smart Store - smart technology, lifestyle products and women-focused electronics"}
+          src={`${basePath}/assets/hero-no-text.png`}
+          alt=""
           fill
           priority
           sizes="100vw"
           className={styles.heroBannerImage}
         />
-      </Link>
+        <div className={styles.bannerCopy} dir={ar ? "rtl" : "ltr"}>
+          <p className={styles.bannerEyebrow}>{ar ? "اختيارات ذكية. لحياة أجمل." : "SMARTER CHOICES. BETTER LIVING."}</p>
+          <h1 id="hero-title" className={styles.bannerTitle}>
+            <span className={styles.bannerTitleLead}>{ar ? "منتجات تفهمك." : "PRODUCTS THAT GET YOU."}</span>
+            <span>{ar ? "وتفاصيل تشبهك." : "DETAILS THAT DEFINE YOU."}</span>
+          </h1>
+          <p className={styles.bannerDescription}>{ar
+            ? "اكتشف تقنية مختارة ومنتجات ذكية تضيف ليومك راحة، ولحياتك أسلوبًا."
+            : "Discover thoughtfully selected tech and smart essentials that bring ease to your day and style to your life."}</p>
+          <ul className={styles.bannerBenefits}>
+            <li><TruckIcon aria-hidden="true" /><span>{ar ? "توصيل سريع" : "Fast delivery"}</span></li>
+            <li><SparklesIcon aria-hidden="true" /><span>{ar ? "جودة مختارة" : "Selected quality"}</span></li>
+            <li><ShieldCheckIcon aria-hidden="true" /><span>{ar ? "تسوّق ودفع آمن" : "Secure shopping & payment"}</span></li>
+            <li><BoltIcon aria-hidden="true" /><span>{ar ? "منتجات ذكية" : "Smart products"}</span></li>
+            <li><CubeIcon aria-hidden="true" /><span>{ar ? "أسلوب حياة عصري" : "Modern lifestyle"}</span></li>
+            <li><GiftIcon aria-hidden="true" /><span>{ar ? "حياة أكثر سهولة" : "Everyday made easier"}</span></li>
+          </ul>
+        </div>
+      </section>
 
       <section id="categories" className={styles.categoriesSection} aria-labelledby="categories-title">
         <div className={styles.sectionHeading}>

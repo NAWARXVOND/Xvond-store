@@ -1,9 +1,40 @@
 .page { width: min(1500px, calc(100% - 1rem)); margin: 0 auto; padding: .4rem 0 4rem; }
 
-.heroBanner { position: relative; display: block; width: 100%; aspect-ratio: 900 / 281; min-height: 360px; overflow: hidden; border-top: 1px solid rgba(80,213,255,.34); border-bottom: 1px solid rgba(80,213,255,.34); background: #020711; box-shadow: 0 18px 60px rgba(0,0,0,.34), 0 0 34px rgba(22,140,255,.12); isolation: isolate; }
+.bannerCopy { position:relative; z-index:2; width:38%; margin-left:4%; margin-right:auto; padding:clamp(1.4rem,2.5vw,2.4rem) 0 1.5rem; text-align:left; }
+.bannerEyebrow { margin:0 0 .7rem; color:#83ddff; font-size:clamp(.65rem,.9vw,.82rem); font-weight:700; letter-spacing:.15em; }
+.bannerCopy[dir="rtl"] .bannerEyebrow { letter-spacing:0; }
+.bannerTitle { margin:0; color:#f3f8ff; font-size:clamp(1.7rem,2.7vw,2.8rem); font-weight:800; line-height:1.12; letter-spacing:-.04em; text-wrap:balance; text-shadow:0 2px 22px #071c35; }
+.bannerTitle > span:not(.bannerTitleLead) { display:block; margin-top:.18em; color:#39c9ff; background:linear-gradient(180deg,#b2f0ff,#36caff 50%,#168cff); background-clip:text; -webkit-background-clip:text; -webkit-text-fill-color:transparent; filter:drop-shadow(0 0 12px #168cff55); }
+.bannerCopy[dir="rtl"] .bannerTitle { font-size:clamp(1.7rem,2.6vw,2.7rem); line-height:1.4; letter-spacing:0; }
+.bannerDescription { max-width:29rem; margin:.8rem 0 0; color:#c1d4e7; font-size:clamp(.85rem,1.15vw,1.05rem); line-height:1.9; text-wrap:pretty; }
+.bannerBenefits { display:grid; grid-template-columns:1fr 1fr 1.35fr; gap:1rem .75rem; direction:ltr; list-style:none; margin:1rem 0 0; padding:.8rem 0 0; border-top:1px solid #58c9ff33; }
+.bannerBenefits li { display:flex; min-width:0; line-height:1.6; align-items:center; gap:.45rem; color:#e1efff; font-size:clamp(.66rem,.85vw,.8rem); font-weight:600; }
+.bannerBenefits svg { flex-shrink:0; width:1.4rem; height:1.4rem; color:#38c8ff; filter:drop-shadow(0 0 7px #168cff77); }
+.bannerCopy[dir="rtl"] .bannerBenefits span { direction:rtl; }
+
+@media (max-width:900px) and (min-width:641px) {
+  .bannerCopy { width:42%; padding-top:2.5rem; }
+  .bannerTitle { font-size:clamp(1.65rem,3.4vw,2.6rem); }
+  .bannerCopy[dir="rtl"] .bannerTitle { font-size:clamp(1.5rem,3vw,2.4rem); }
+  .bannerBenefits { margin-top:1.2rem; gap:.7rem; }
+}
+@media (max-width:640px) {
+  .page .heroBanner { aspect-ratio:auto; min-height:480px; border-radius:.8rem; }
+  .heroBanner .heroBannerImage { object-fit:contain; object-position:center bottom; }
+  .heroBanner::before { content:""; position:absolute; inset:0; z-index:1; background:linear-gradient(180deg,#020711 0%,#020711 43%,transparent 72%); pointer-events:none; }
+  .bannerCopy { width:calc(100% - 2.5rem); margin-left:1.25rem; padding:1.4rem 0 11rem; }
+  .bannerTitle { max-width:25rem; font-size:clamp(1.9rem,7.5vw,2.7rem); }
+  .bannerCopy[dir="rtl"] .bannerTitle { font-size:clamp(1.65rem,6vw,2.3rem); }
+  .bannerEyebrow { margin-bottom:1rem; font-size:.62rem; }
+  .bannerDescription { max-width:26rem; margin-top:.9rem; font-size:.85rem; }
+  .bannerBenefits { margin-top:1.1rem; padding-top:1rem; gap:.8rem 1rem; }
+  .bannerBenefits li { font-size:.66rem; }
+}
+
+.heroBanner { position: relative; display: block; width: 100%; aspect-ratio: 32 / 9; min-height: 360px; overflow: hidden; border-top: 1px solid rgba(80,213,255,.34); border-bottom: 1px solid rgba(80,213,255,.34); background: #020711; box-shadow: 0 18px 60px rgba(0,0,0,.34), 0 0 34px rgba(22,140,255,.12); isolation: isolate; }
 .heroBanner::after { content: ""; position: absolute; inset-inline: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, #168cff 50%, transparent); box-shadow: 0 0 26px rgba(22,140,255,.82); pointer-events: none; }
 .heroBannerImage { object-fit: cover; object-position: center; transition: transform .45s ease, filter .45s ease; }
-.heroBanner:hover .heroBannerImage { transform: scale(1.012); filter: brightness(1.035) saturate(1.04); }
+
 
 .heroSection { position: relative; min-height: 430px; display: grid; grid-template-columns: .72fr 1.28fr; overflow: hidden; border-top: 1px solid rgba(80,213,255,.28); border-bottom: 1px solid rgba(80,213,255,.28); background: radial-gradient(circle at 74% 35%, rgba(22,140,255,.32), transparent 30%), radial-gradient(circle at 58% 55%, rgba(7,87,214,.24), transparent 38%), linear-gradient(120deg,#020611 0%,#041225 42%,#020711 100%); box-shadow: inset 0 0 90px rgba(22,140,255,.04), 0 18px 60px rgba(0,0,0,.3); isolation: isolate; }
 .heroSection::before { content:""; position:absolute; inset:0; z-index:0; pointer-events:none; background:linear-gradient(90deg,rgba(1,5,12,.98) 0%,rgba(1,5,12,.9) 28%,rgba(1,5,12,.32) 52%,rgba(1,5,12,.08) 76%,rgba(1,5,12,.36) 100%); }
@@ -80,8 +111,7 @@
 }
 
 @media (max-width:900px) {
-  .heroBanner { min-height: 300px; aspect-ratio: 2.35 / 1; }
-  .heroBannerImage { object-position: center; }
+
   .heroSection { grid-template-columns:.9fr 1.1fr; min-height:390px; }
   .heroVisual { min-height:390px; }
   .heroContent h1 { font-size:clamp(2.35rem,5vw,4.2rem); }
@@ -89,8 +119,7 @@
 
 @media (max-width:760px) {
   .page { width:min(100% - .65rem,1500px); }
-  .heroBanner { min-height: 260px; aspect-ratio: 1.9 / 1; border-radius:.8rem; }
-  .heroBannerImage { object-position: 58% center; }
+
   .heroSection { grid-template-columns:1fr; min-height:auto; border-radius:.8rem; }
   .heroSection::before { background:linear-gradient(180deg,rgba(2,6,13,.97) 0%,rgba(2,6,13,.82) 48%,rgba(2,6,13,.28) 100%); }
   .heroContent { padding:1.7rem 1.15rem .4rem; }
@@ -109,8 +138,7 @@
 }
 
 @media (max-width:480px) {
-  .heroBanner { min-height: 230px; aspect-ratio: 1.55 / 1; }
-  .heroBannerImage { object-position: 62% center; }
+
   .heroContent h1 { font-size:clamp(2.05rem,12vw,3rem); }
   .heroSubline { font-size:.78rem; line-height:1.6; }
   .heroVisual { min-height:280px; }
@@ -120,3 +148,6 @@
   .categoryCopy small { display:none; }
   .boxCopy { padding:1.2rem; }
 }
+
+.bannerTitleLead { display:block; }
+.bannerCopy[dir="rtl"] .bannerTitleLead { text-align:right; }

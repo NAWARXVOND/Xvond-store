@@ -4,7 +4,7 @@ Put storefront images in this folder so they are easy to reference from the fron
 
 Recommended names:
 - `logo.png`
-- `hero.png`
+- `hero-no-text.png`
 - `categories/<category>.jpg`
 - `products/<product-slug>.jpg`
 
