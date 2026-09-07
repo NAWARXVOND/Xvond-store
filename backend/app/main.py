@@ -67,6 +67,8 @@ async def ready() -> dict[str, str]:
         "status": "ready",
         "database": "connected",
         "email": "configured" if email_configured else "not-configured",
+        "google_auth": "configured" if settings.google_auth_enabled else "not-configured",
+        "phone_auth": "configured" if settings.phone_auth_enabled else "not-configured",
     }
 
 
