@@ -14,6 +14,9 @@ _AUTH_LIMITS: dict[tuple[str, str], tuple[int, int]] = {
     ("POST", "/auth/identify"): (30, 60),
     ("POST", "/auth/login"): (10, 60),
     ("POST", "/auth/password/forgot"): (5, 60),
+    ("POST", "/auth/phone/start"): (5, 60),
+    ("POST", "/auth/phone/confirm"): (10, 60),
+    ("POST", "/auth/phone/verify"): (10, 60),
 }
 
 
