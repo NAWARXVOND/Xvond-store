@@ -51,3 +51,23 @@ def test_limits_are_separate_per_client() -> None:
     assert limited is not None
     assert limited.status_code == 429
     assert auth_rate_limit.check_auth_rate_limit(second, "/api/v1") is None
+
+
+def test_phone_start_is_limited_after_five_requests() -> None:
+    request = _request("/api/v1/auth/phone/start")
+    for _ in range(5):
+        assert auth_rate_limit.check_auth_rate_limit(request, "/api/v1") is None
+
+    response = auth_rate_limit.check_auth_rate_limit(request, "/api/v1")
+    assert response is not None
+    assert response.status_code == 429
+
+
+def test_phone_confirm_is_limited_after_ten_requests() -> None:
+    request = _request("/api/v1/auth/phone/confirm")
+    for _ in range(10):
+        assert auth_rate_limit.check_auth_rate_limit(request, "/api/v1") is None
+
+    response = auth_rate_limit.check_auth_rate_limit(request, "/api/v1")
+    assert response is not None
+    assert response.status_code == 429
