@@ -1,43 +1,47 @@
 from __future__ import annotations
 
-import hashlib
 import threading
 import time
 from collections import defaultdict, deque
 
-from fastapi import HTTPException, Request, status
+from fastapi import Request
+from fastapi.responses import JSONResponse
 
 _lock = threading.Lock()
 _attempts: dict[str, deque[float]] = defaultdict(deque)
+
+_AUTH_LIMITS: dict[tuple[str, str], tuple[int, int]] = {
+    ("POST", "/auth/identify"): (30, 60),
+    ("POST", "/auth/login"): (10, 60),
+    ("POST", "/auth/password/forgot"): (5, 60),
+}
 
 
 def _client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def _safe_identifier(value: str) -> str:
-    normalized = value.strip().lower()
-    return hashlib.sha256(normalized.encode()).hexdigest()[:24]
+def check_auth_rate_limit(request: Request, api_prefix: str) -> JSONResponse | None:
+    """Rate-limit sensitive authentication routes for the current single-worker API.
 
-
-def enforce_auth_rate_limit(
-    request: Request,
-    *,
-    scope: str,
-    identifier: str | None = None,
-    limit: int,
-    window_seconds: int = 60,
-) -> None:
-    """Small in-process limiter for the current single-worker storefront API.
-
-    Keys use both the client address and a hash of the submitted identifier when
-    available. This keeps the Temu-style identify step while making bulk account
-    enumeration and password guessing materially harder.
+    The storefront currently runs one Uvicorn worker, so an in-process sliding
+    window is sufficient for this deployment shape. If the API is scaled to
+    multiple workers or replicas, this should be moved to Redis or another shared
+    store so all instances enforce the same counters.
     """
 
-    client = _client_ip(request)
-    suffix = f":{_safe_identifier(identifier)}" if identifier else ""
-    key = f"{scope}:{client}{suffix}"
+    path = request.url.path
+    if path.startswith(api_prefix):
+        relative_path = path[len(api_prefix):]
+    else:
+        relative_path = path
+
+    rule = _AUTH_LIMITS.get((request.method.upper(), relative_path))
+    if rule is None:
+        return None
+
+    limit, window_seconds = rule
+    key = f"{request.method.upper()}:{relative_path}:{_client_ip(request)}"
     now = time.monotonic()
     cutoff = now - window_seconds
 
@@ -47,9 +51,11 @@ def enforce_auth_rate_limit(
             bucket.popleft()
         if len(bucket) >= limit:
             retry_after = max(1, int(window_seconds - (now - bucket[0])))
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Too many authentication attempts. Try again shortly.",
-                headers={"Retry-After": str(retry_after)},
+            return JSONResponse(
+                status_code=429,
+                content={"detail": "Too many authentication attempts. Try again shortly."},
+                headers={"Retry-After": str(retry_after), "Cache-Control": "no-store"},
             )
         bucket.append(now)
+
+    return None
