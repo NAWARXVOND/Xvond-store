@@ -5,6 +5,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.api.router import api_router
+from app.core.auth_rate_limit import check_auth_rate_limit
 from app.core.config import get_settings
 from app.core.database import engine
 
@@ -25,6 +26,10 @@ app.add_middleware(
 
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
+    limited = check_auth_rate_limit(request, settings.api_prefix)
+    if limited is not None:
+        return limited
+
     if request.url.path.startswith(f"{settings.api_prefix}/admin") and request.method != "GET":
         content_type = request.headers.get("content-type", "")
         if request.method in {"POST", "PATCH"} and "application/json" not in content_type:
